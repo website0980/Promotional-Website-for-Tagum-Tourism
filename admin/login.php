@@ -1,5 +1,6 @@
 <?php
 // Admin Login Page - Hardened
+session_start();
 require_once 'config.php';
 
 $error = '';
@@ -11,18 +12,18 @@ if (!isset($_SESSION['login_attempts'])) {
 }
 
 // Reset attempts after 15 minutes
-if (time() - $_SESSION['last_attempt_time'] > 900) {
+if (time() - ($_SESSION['last_attempt_time'] ?? 0) > 900) {
     $_SESSION['login_attempts'] = 0;
     $_SESSION['last_attempt_time'] = time();
 }
 
 // Max 5 attempts per 15-minute window
-if ($_SESSION['login_attempts'] >= 5) {
+if (($_SESSION['login_attempts'] ?? 0) >= 5) {
     $error = 'Too many failed attempts. Please try again in 15 minutes.';
 }
 
 // Handle login form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SESSION['login_attempts'] < 5) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_SESSION['login_attempts'] ?? 0) < 5) {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     $csrf = $_POST['csrf_token'] ?? '';
@@ -106,7 +107,7 @@ if (isLoggedIn()) {
                     >
                 </div>
 
-                <button type="submit" class="login-btn" <?php echo ($_SESSION['login_attempts'] >= 5) ? 'disabled' : ''; ?>>Login</button>
+                <button type="submit" class="login-btn" <?php echo (($_SESSION['login_attempts'] ?? 0) >= 5) ? 'disabled' : ''; ?>>Login</button>
             </form>
 
 
