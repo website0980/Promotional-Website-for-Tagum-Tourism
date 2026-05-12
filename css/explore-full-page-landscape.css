@@ -1,0 +1,183 @@
+/* Landscape Category Styles - Horizontal Layout */
+.cuisine-category.landscape {
+    display: flex;
+    flex-direction: row;
+    height: auto;
+    min-height: 320px;
+    padding: 2rem;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.cuisine-category.landscape .category-image {
+    flex: 0 0 300px;
+    height: 280px;
+    width: 300px;
+    object-fit: cover;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.cuisine-category.landscape .category-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.cuisine-category.landscape h3 {
+    font-size: 2.2rem;
+    color: var(--dark-green);
+    margin: 0;
+}
+
+.cuisine-category.landscape > p {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: var(--gray);
+}
+
+.item-count.landscape {
+    background: linear-gradient(135deg, var(--dark-green), var(--light-green));
+    color: white;
+    padding: 0.6rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    align-self: flex-start;
+}
+
+.toggle-items-btn.landscape {
+    background: linear-gradient(135deg, var(--dark-green), var(--light-green));
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: flex-start;
+    box-shadow: 0 6px 20px rgba(29,90,61,0.3);
+}
+
+.toggle-items-btn.landscape:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(29,90,61,0.4);
+}
+
+/* Landscape Items List */
+.cuisine-category.landscape .items-list {
+    margin-top: 2rem;
+    background: var(--light-gray);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, padding 0.3s ease;
+}
+
+.cuisine-category.landscape .items-list.show {
+    max-height: 600px;
+    padding: 1.5rem;
+}
+
+.cuisine-category.landscape .food-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid rgba(107,114,128,0.2);
+}
+
+.cuisine-category.landscape .food-item:last-child {
+    border-bottom: none;
+}
+
+.cuisine-category.landscape .food-image {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.cuisine-category.landscape .food-info h4 {
+    color: var(--dark-green);
+    font-size: 1.25rem;
+    margin-bottom: 0.3rem;
+}
+
+.cuisine-category.landscape .food-info p {
+    color: var(--gray);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Grid Layout for Multiple Categories */
+.cuisine-grid.landscape {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(850px, 1fr));
+    gap: 2.5rem;
+    margin-top: 3rem;
+}
+
+@media (max-width: 900px) {
+    .cuisine-category.landscape {
+        flex-direction: column;
+        height: auto;
+        min-height: 500px;
+        gap: 1.5rem;
+    }
+    
+    .cuisine-category.landscape .category-image {
+        width: 100%;
+        height: 250px;
+        flex: none;
+    }
+    
+    .cuisine-grid.landscape {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .cuisine-category.landscape {
+        padding: 1.5rem;
+        min-height: 450px;
+    }
+    
+    .cuisine-category.landscape .category-image {
+        height: 200px;
+    }
+    
+    .toggle-items-btn.landscape {
+        width: 100%;
+    }
+}
+
+/* Animation Enhancements */
+.cuisine-category.landscape {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cuisine-category.landscape:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+
+.items-list.show {
+    animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
