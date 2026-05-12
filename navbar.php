@@ -1,0 +1,35 @@
+<?php
+$isSubdir = (strpos(strtolower($_SERVER['PHP_SELF'] ?? ''), 'module') !== false);
+$isHome = basename($_SERVER['PHP_SELF'] ?? '') === 'index.php';
+$prefix = $isHome ? '' : '../index.php';
+$logoPath = $isSubdir ? '../images/TagumTourism.jpg' : 'images/TagumTourism.jpg';
+$adminPath = $isSubdir ? '../admin/login.php' : 'admin/login.php';
+$jsPath = $isSubdir ? '../js/navbar.js' : 'js/navbar.js';
+?>
+<link rel="stylesheet" href="<?php echo $isSubdir ? '../css/mobile-navbar.css' : 'css/mobile-navbar.css'; ?>">
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="logo">
+            <img src="<?php echo $logoPath; ?>" alt="Tagum Tourism" class="logo-img">
+            <span class="logo-text">Tagum Tourism</span>
+            <button class="hamburger" aria-label="Toggle Menu" aria-expanded="false" onclick="toggleMobileMenu(event)">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <ul class="nav-menu" id="mobile-menu">
+
+
+            <li><a href="<?php echo $prefix; ?>#home" class="nav-link">Home</a></li>
+            <li><a href="<?php echo $prefix; ?>#explore" class="nav-link">Explore</a></li>
+            <li><a href="<?php echo $prefix; ?>#experiences" class="nav-link">Experiences</a></li>
+            <li><a href="<?php echo $prefix; ?>#plan" class="nav-link">Plan</a></li>
+            <li><a href="<?php echo $prefix; ?>#hotels-restaurants" class="nav-link">Hotels & Restaurants</a></li>
+            <li><a href="<?php echo $prefix; ?>#contact" class="nav-link">Contact</a></li>
+
+            <li><a href="<?php echo $adminPath; ?>" class="admin-btn nav-link">Admin</a></li>
+        </ul>
+    </div>
+</nav>
+<script src="<?php echo $jsPath; ?>"></script>
