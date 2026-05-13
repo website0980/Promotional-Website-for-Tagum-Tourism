@@ -9,10 +9,10 @@ $jsPath = $isSubdir ? '../js/navbar.js' : 'js/navbar.js';
 <link rel="stylesheet" href="<?php echo $isSubdir ? '../css/mobile-navbar.css' : 'css/mobile-navbar.css'; ?>">
 <nav class="navbar">
     <div class="nav-container">
-        <div class="logo">
-            <img src="<?php echo $logoPath; ?>" alt="Tagum Tourism" class="logo-img">
-            <span class="logo-text">Tagum Tourism</span>
-            <button class="hamburger" aria-label="Toggle Menu" aria-expanded="false" onclick="toggleMobileMenu(event)">
+        <div class="logo" style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <img src="<?php echo $logoPath; ?>" alt="Tagum Tourism Logo" class="logo-img" style="height: 48px; width: 48px; object-fit: contain; order:1;">
+            <img src="<?php echo $isSubdir ? '../images/TextLogo.png' : 'images/TextLogo.png'; ?>" alt="Tagum Tourism Text Logo" class="logo-text-img" style="height: 44px; object-fit: contain; display: block; order:2;">
+            <button class="hamburger" aria-label="Toggle Menu" aria-expanded="false" onclick="toggleMobileMenu(event)" style="order:3; margin-left: 8px;">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -25,7 +25,7 @@ $jsPath = $isSubdir ? '../js/navbar.js' : 'js/navbar.js';
             <li><a href="<?php echo $prefix; ?>#explore" class="nav-link">Explore</a></li>
             <li><a href="<?php echo $prefix; ?>#experiences" class="nav-link">Experiences</a></li>
             <li><a href="<?php echo $prefix; ?>#plan" class="nav-link">Plan</a></li>
-            <li><a href="<?php echo $prefix; ?>#hotels-restaurants" class="nav-link">Hotels & Restaurants</a></li>
+            <li><a href="<?php echo $prefix; ?>#hotels-restaurants" class="nav-link hotels-restaurants-link">Hotels & Restaurants</a></li>
             <li><a href="<?php echo $prefix; ?>#contact" class="nav-link">Contact</a></li>
 
             <li><a href="<?php echo $adminPath; ?>" class="admin-btn nav-link">Admin</a></li>
