@@ -343,6 +343,14 @@
         </div>
     </section>
 
+    <!-- Certification Application Section -->
+    <section class="certification-application-section" id="certification">
+        <?php
+        require_once __DIR__ . '/includes/module_link_banner.php';
+        renderIndexCertificationPromo('from_index');
+        ?>
+    </section>
+
     <style>
         .hotels-restaurants {
             padding: 4rem 2rem;
@@ -355,6 +363,98 @@
             color: var(--dark-green, #1d5a3d);
             margin-bottom: 3rem;
             text-align: center;
+        }
+        .certification-application-section {
+            padding: 4rem 2rem;
+            background-color: var(--light-gray, #f3f4f6);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .cert-index-promo {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .cert-index-promo-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+            text-align: center;
+        }
+        .cert-index-promo-icon {
+            font-size: 3rem;
+        }
+        .cert-index-promo-text h3 {
+            font-size: 1.75rem;
+            color: var(--dark-green, #1d5a3d);
+            margin-bottom: 0.75rem;
+        }
+        .cert-index-promo-text p {
+            color: #666;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        .cert-index-promo-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .cert-promo-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
+        }
+        .cert-promo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .cert-promo-dot {
+            background-color: var(--dark-green, #1d5a3d);
+            color: #fff;
+            border: 2px solid var(--dark-green, #1d5a3d);
+        }
+        .cert-promo-dot:hover {
+            background-color: var(--light-green, #2d7a4d);
+            border-color: var(--light-green, #2d7a4d);
+            color: #fff;
+        }
+        .cert-promo-local {
+            background-color: #fff;
+            color: var(--dark-green, #1d5a3d);
+            border: 2px solid var(--dark-green, #1d5a3d);
+        }
+        .cert-promo-local:hover {
+            background-color: var(--dark-green, #1d5a3d);
+            color: #fff;
+            border-color: var(--dark-green, #1d5a3d);
+        }
+        @media (max-width: 768px) {
+            .cert-index-promo {
+                padding: 2rem 1rem;
+            }
+            .cert-index-promo-text p {
+                max-width: 100%;
+            }
+            .cert-promo-btn {
+                width: 100%;
+                max-width: 360px;
+            }
+        }
+        @media (min-width: 768px) {
+            .cert-index-promo-inner {
+                flex-direction: row;
+                text-align: left;
+                align-items: flex-start;
+            }
+            .cert-index-promo-actions {
+                flex-direction: column;
+                margin-left: auto;
+            }
         }
     </style>
 
