@@ -18,7 +18,7 @@ $restaurant = [
     'name' => '',
     'description' => '',
     'price' => '',
-        'location' => '',
+    'location' => '',
     'contact' => '',
     'information' => '',
     'latitude' => '',
@@ -38,8 +38,11 @@ if ($restaurantIndex !== null && $restaurantIndex !== '') {
     }
 }
 
-// Handle form submission
+    // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Debug: temporarily show whether POST is received
+    // (Remove later if not needed)
+    // echo '<div style="padding:8px;background:#fee;border:1px solid #f99;">POST received</div>';
     $restaurant = [
         'name' => trim($_POST['name'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -70,12 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Basic validation
     if (empty($restaurant['name'])) $errors[] = 'Restaurant name is required';
 
-    // Save if no errors
+// Save if no errors
     if (empty($errors)) {
-        if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-$result = saveRestaurantImage($_FILES['image_file']);
+        // Only run image upload if a new file was selected.
+        if (isset($_FILES['image_file']) && ($_FILES['image_file']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+            $result = saveRestaurantImage($_FILES['image_file']);
             if ($result['success']) {
-                if (!empty($restaurant['image'])) {
+                // Delete old image only when replacing
+                if ($isEdit && !empty($restaurant['image'])) {
                     deleteRestaurantImage($restaurant['image']);
                 }
                 $restaurant['image'] = $result['path'];
@@ -83,50 +88,54 @@ $result = saveRestaurantImage($_FILES['image_file']);
                 $errors[] = $result['error'] ?? 'Image upload failed';
             }
         }
+
         if (empty($errors)) {
             $dbFile = '../database.db';
-            if (file_exists($dbFile)) {
-                $db = new SQLite3($dbFile);
-                if ($isEdit) {
-                    $stmt = $db->prepare('UPDATE restaurant_items SET name = ?, description = ?, location = ?, contact = ?, latitude = ?, longitude = ?, image = ? WHERE id = ?');
-                    $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
-                    $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
-                    $stmt->bindValue(3, $restaurant['location'], SQLITE3_TEXT);
-                    $stmt->bindValue(4, $restaurant['contact'], SQLITE3_TEXT);
-                    $stmt->bindValue(5, $restaurant['latitude'], SQLITE3_FLOAT);
-                    $stmt->bindValue(6, $restaurant['longitude'], SQLITE3_FLOAT);
-                    $stmt->bindValue(7, $restaurant['image'], SQLITE3_TEXT);
-                    $stmt->bindValue(8, $restaurantIndex, SQLITE3_INTEGER);
-                    $stmt->execute();
-                    $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
-                    $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
-                    $stmt->bindValue(3, $restaurant['price'], SQLITE3_TEXT);
-                    $stmt->bindValue(4, $restaurant['category'], SQLITE3_TEXT);
-                    $stmt->bindValue(5, $restaurant['location'], SQLITE3_TEXT);
-                    $stmt->bindValue(6, $restaurant['contact'], SQLITE3_TEXT);
-                    $stmt->bindValue(7, $restaurant['information'], SQLITE3_TEXT);
-                    $stmt->bindValue(8, $restaurant['latitude'], SQLITE3_FLOAT);
-                    $stmt->bindValue(9, $restaurant['longitude'], SQLITE3_FLOAT);
-                    $stmt->bindValue(10, $restaurant['rating'], SQLITE3_FLOAT);
-                    $stmt->bindValue(11, $restaurant['image'], SQLITE3_TEXT);
-                    $stmt->bindValue(12, $restaurantIndex, SQLITE3_INTEGER);
-                    $stmt->execute();
-                } else {
-                    $stmt = $db->prepare('INSERT INTO restaurant_items (name, description, location, contact, latitude, longitude, image) VALUES (?, ?, ?, ?, ?, ?, ?)');
-                    $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
-                    $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
-                    $stmt->bindValue(3, $restaurant['location'], SQLITE3_TEXT);
-                    $stmt->bindValue(4, $restaurant['contact'], SQLITE3_TEXT);
-                    $stmt->bindValue(5, $restaurant['latitude'], SQLITE3_FLOAT);
-                    $stmt->bindValue(6, $restaurant['longitude'], SQLITE3_FLOAT);
-                    $stmt->bindValue(7, $restaurant['image'], SQLITE3_TEXT);
-                    $stmt->execute();
+            if (!file_exists($dbFile)) {
+                $errors[] = 'Database file not found: ' . $dbFile;
+            } else {
+                try {
+                    $db = new SQLite3($dbFile);
+                    if ($isEdit) {
+                        $stmt = $db->prepare('UPDATE restaurant_items SET name = ?, description = ?, location = ?, contact = ?, latitude = ?, longitude = ?, image = ? WHERE id = ?');
+                        $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
+                        $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
+                        $stmt->bindValue(3, $restaurant['location'], SQLITE3_TEXT);
+                        $stmt->bindValue(4, $restaurant['contact'], SQLITE3_TEXT);
+                        $stmt->bindValue(5, $restaurant['latitude'], SQLITE3_FLOAT);
+                        $stmt->bindValue(6, $restaurant['longitude'], SQLITE3_FLOAT);
+                        $stmt->bindValue(7, $restaurant['image'], SQLITE3_TEXT);
+                        $stmt->bindValue(8, $restaurantIndex, SQLITE3_INTEGER);
+                        $stmt->execute();
+
+                        // If nothing was updated, treat it as failure (useful for debugging).
+                        $changes = $db->changes();
+                        if ($changes <= 0) {
+                            $errors[] = 'Update failed. ID: ' . $restaurantIndex . ' (changes=' . $changes . ')';
+                        }
+                    } else {
+                        $stmt = $db->prepare('INSERT INTO restaurant_items (name, description, location, contact, latitude, longitude, image) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                        $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
+                        $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
+                        $stmt->bindValue(3, $restaurant['location'], SQLITE3_TEXT);
+                        $stmt->bindValue(4, $restaurant['contact'], SQLITE3_TEXT);
+                        $stmt->bindValue(5, $restaurant['latitude'], SQLITE3_FLOAT);
+                        $stmt->bindValue(6, $restaurant['longitude'], SQLITE3_FLOAT);
+                        $stmt->bindValue(7, $restaurant['image'], SQLITE3_TEXT);
+                        $stmt->execute();
+                    }
+
+                    $db->close();
+                } catch (Throwable $e) {
+                    $errors[] = 'Database error: ' . $e->getMessage();
                 }
-                $db->close();
             }
-            $message = $isEdit ? 'updated' : 'added';
-            header('Location: dashboard.php?tab=restaurants&message=' . $message);
-            exit();
+
+            if (empty($errors)) {
+                $message = $isEdit ? 'updated' : 'added';
+                header('Location: dashboard.php?tab=restaurants&message=' . $message);
+                exit();
+            }
         }
     }
 }
@@ -173,12 +182,12 @@ $result = saveRestaurantImage($_FILES['image_file']);
                     <h2>Restaurant Information</h2>
                     <div class="form-group">
                         <label for="name">Restaurant Name *</label>
-                        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($restaurant['name']); ?>" required class="form-control" placeholder="e.g., Grand Palace Filipino Cuisine">
+                        <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($restaurant['name']); ?>" required class="form-control" placeholder="e.g., Grand Palace Filipino">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="location">Location <small>(Type place name or pick from map)</small></label>
-                            <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($restaurant['location'] ?? ''); ?>" class="form-control" placeholder="e.g., Gaisano Mall Tagum">
+                            <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($restaurant['location'] ?? ''); ?>" class="form-control" placeholder="e.g., Gaisano">
                         </div>
                     </div>
                     <div class="form-row">
@@ -220,7 +229,7 @@ $result = saveRestaurantImage($_FILES['image_file']);
                     </div>
                     <div class="form-group">
                         <label for="description">Description</label>
-                        <textarea id="description" name="description" class="form-control form-textarea" rows="5" placeholder="Detailed description, menu highlights"><?php echo htmlspecialchars($restaurant['description']); ?></textarea>
+                        <textarea id="description" name="description" class="form-control form-textarea" rows="5" placeholder="Detailed description, menu highlights"><?php echo htmlspecialchars($restaurant['description'] ?? ''); ?></textarea>
                     </div>
                 </div>
                 <div class="form-section">
@@ -240,7 +249,7 @@ $result = saveRestaurantImage($_FILES['image_file']);
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <script src="../assets/js/admin.js"></script>
+    <script src="../js/admin.js"></script>
     
     <script>
     // Leaflet Map with two-way location sync
@@ -370,5 +379,7 @@ $result = saveRestaurantImage($_FILES['image_file']);
     
     document.addEventListener('DOMContentLoaded', initMap);
     </script>
+
+    <!-- Removed debug click listener. Actual fix is handled in media-picker inputs. -->
 </body>
 </html>

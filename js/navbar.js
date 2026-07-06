@@ -22,16 +22,6 @@ function closeMenu() {
   hamburger.setAttribute('aria-expanded', 'false');
 }
 
-// Add smooth page transition
-function addPageTransition() {
-  document.body.style.opacity = '0';
-  document.body.style.transition = 'opacity 0.5s ease-in-out';
-  
-  window.addEventListener('load', () => {
-    document.body.style.opacity = '1';
-  });
-}
-
 function setupMenu() {
   const hamburger = document.querySelector('.hamburger');
   const menu = document.querySelector('.nav-menu');
@@ -42,16 +32,6 @@ function setupMenu() {
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
       closeMenu();
-      
-      // Add smooth transition for page navigation
-      const href = link.getAttribute('href');
-      if (href && !href.startsWith('#')) {
-        e.preventDefault();
-        document.body.style.opacity = '0';
-        setTimeout(() => {
-          window.location.href = href;
-        }, 500);
-      }
     });
   });
 
@@ -79,9 +59,6 @@ function setupMenu() {
   window.addEventListener('orientationchange', updateLandscapeClass);
   window.addEventListener('resize', updateLandscapeClass);
   updateLandscapeClass();
-  
-  // Add page transition on load
-  addPageTransition();
 }
 
 document.addEventListener('DOMContentLoaded', setupMenu);

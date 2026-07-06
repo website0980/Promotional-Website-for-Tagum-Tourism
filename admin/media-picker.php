@@ -7,7 +7,7 @@
 ?>
 <div class="form-group media-picker">
     <label>Image</label>
-    <input type="hidden" name="image" value="<?php echo htmlspecialchars($image ?? ''); ?>">
+    <input type="hidden" name="image" value="<?php echo htmlspecialchars($storedImage ?? $image ?? ''); ?>">
     <?php if (!empty($image)): ?>
         <div class="current-image-wrap">
             <img src="<?php echo htmlspecialchars($image); ?>" alt="Current" style="max-width:200px; border-radius:8px; display:block;">

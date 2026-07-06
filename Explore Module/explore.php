@@ -1,3 +1,8 @@
+<?php
+$requestedSection = isset($_GET['section']) && in_array($_GET['section'], ['events', 'festivals'], true)
+    ? $_GET['section']
+    : 'events';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,76 +24,52 @@
         <div class="explore-container">
             <!-- Section Tabs -->
             <div class="section-tabs">
-                <button class="tab-btn active" data-section="events">Events</button>
-                <button class="tab-btn" data-section="festivals">Festivals</button>
+                <button class="tab-btn <?php echo $requestedSection === 'events' ? 'active' : ''; ?>" data-section="events">Events</button>
+                <button class="tab-btn <?php echo $requestedSection === 'festivals' ? 'active' : ''; ?>" data-section="festivals">Festivals</button>
             </div>
 
             <!-- Events Content -->
-            <div class="section-content active" id="events">
+            <div class="section-content <?php echo $requestedSection === 'events' ? 'active' : ''; ?>" id="events">
                 <h1>Events</h1>
                 <div class="content-text">
                     <h2>Discover Local Events</h2>
-                    <p>Experience vibrant events and gatherings that celebrate Tagum City's culture, traditions, and community spirit. From festivals to cultural celebrations, there's always something happening.</p>
-                    
-                    <?php
-                    $dbFile = '../database.db';
-                    $events = [];
-                    if (file_exists($dbFile)) {
-                        try {
-                            $db = new SQLite3($dbFile);
-                            $result = $db->query('SELECT * FROM events ORDER BY id DESC');
-                            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-                                $events[] = $row;
-                            }
-                            $db->close();
-                        } catch (Exception $e) {
-                            // Fallback to JSON if database fails
-                            $events = json_decode(file_get_contents('../data/cultural-sites.json'), true) ?? [];
-                        }
-                    } else {
-                        // Fallback to JSON if database doesn't exist
-                        $events = json_decode(file_get_contents('../data/cultural-sites.json'), true) ?? [];
-                    }
-                    ?>
-                    
-                    <?php if (!empty($events)): ?>
-                    <div class="cuisine-grid">
-                        <?php foreach ($events as $site): ?>
-                            <div class="cuisine-category">
-                                <?php if (!empty($site['image'])): ?>
-                                    <?php 
-                                    $imagePath = $site['image'];
-                                    // Fix image path if it has ../../ prefix
-                                    if (strpos($imagePath, '../../') === 0) {
-                                        $imagePath = str_replace('../../', '../', $imagePath);
-                                    }
-                                    // Fix image path if it has cultural-sites in it
-                                    if (strpos($imagePath, 'cultural-sites') !== false) {
-                                        $imagePath = str_replace('cultural-sites', 'events', $imagePath);
-                                    }
-                                    ?>
-                                    <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($site['name']); ?>" class="category-image" onerror="this.style.display='none'">
-                                <?php endif; ?>
-                                <h3><?php echo htmlspecialchars($site['name']); ?></h3>
-                                <!-- No description - tease with Read More! -->
-<a href="event-detail.php?id=<?php echo $site['id']; ?>" class="read-more-btn btn btn-primary">Read More</a>
-
-                            </div>
-                        <?php endforeach; ?>
+                    <div class="calendar-view-link">
+                        <a href="events-calendar.php" class="calendar-view-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            View Calendar
+                        </a>
                     </div>
+                    <p>Browse events by month. Click a month to see what's happening — each group shows the event names at a glance, then expands to full details.</p>
+                </div>
+
+                <?php
+                require_once dirname(__DIR__) . '/includes/events_helpers.php';
+                $events = loadEvents(dirname(__DIR__) . '/database.db');
+                ?>
+
+                <div class="events-section-wrapper">
+                    <?php if (!empty($events)): ?>
+                        <?php include dirname(__DIR__) . '/includes/events_month_view.php'; ?>
                     <?php else: ?>
-                    <h3>Featured Events:</h3>
-                    <ul>
-                        <li><strong>Araw ng Tagum Festival</strong> - Annual celebration of the city's founding</li>
-                        <li><strong>Davao Food Festival</strong> - Showcase of local culinary traditions</li>
-                        <li><strong>Tagum Sports Fest</strong> - Community sports and recreation events</li>
-                    </ul>
+                        <div class="content-text">
+                            <h3>Featured Events:</h3>
+                            <ul>
+                                <li><strong>Araw ng Tagum Festival</strong> - Annual celebration of the city's founding</li>
+                                <li><strong>Davao Food Festival</strong> - Showcase of local culinary traditions</li>
+                                <li><strong>Tagum Sports Fest</strong> - Community sports and recreation events</li>
+                            </ul>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
 
             <!-- Festivals Content -->
-            <div class="section-content" id="festivals">
+            <div class="section-content <?php echo $requestedSection === 'festivals' ? 'active' : ''; ?>" id="festivals">
                 <h1>Festivals</h1>
                 <div class="content-text">
                     <h2>Celebrate Local Culture</h2>
@@ -97,6 +78,7 @@
                     <?php
                     $dbFile = '../database.db';
                     $festivals = [];
+                    $events = loadEvents(dirname(__DIR__) . '/database.db');
                     if (file_exists($dbFile)) {
                         try {
                             $db = new SQLite3($dbFile);
@@ -113,6 +95,8 @@
                         // Fallback to JSON if database doesn't exist
                         $festivals = json_decode(file_get_contents('../data/festivals.json'), true) ?? [];
                     }
+
+                    $festivals = sortFestivalsByRelatedEvents($festivals, $events);
                     ?>
                     
                     <?php if (!empty($festivals)): ?>

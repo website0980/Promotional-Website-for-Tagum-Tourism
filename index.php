@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tagum City - Discover Natural Beauty</title>
+    <title>Tagum Tourism</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/mobile-navbar.css">
 <?php include 'navbar.php'; ?>
@@ -11,9 +11,53 @@
 <body>
 
     <!-- Hero Carousel Section -->
+    <?php
+    $carouselSlides = [];
+    $dbFile = 'database.db';
+    if (file_exists($dbFile)) {
+        try {
+            $db = new SQLite3($dbFile);
+            $schema = @file_get_contents('database/carousel_schema.sql');
+            if ($schema) {
+                $db->exec($schema);
+            }
+            $result = $db->query('SELECT * FROM carousel_slides WHERE active = 1 ORDER BY sort_order ASC, id ASC');
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $carouselSlides[] = $row;
+            }
+            $db->close();
+        } catch (Exception $e) {
+            $carouselSlides = [];
+        }
+    }
+    ?>
     <section class="hero-carousel" id="home">
         <div class="carousel-container">
-            <!-- Slide 1 -->
+            <?php if (!empty($carouselSlides)): ?>
+                <?php foreach ($carouselSlides as $index => $slide): ?>
+                    <div class="carousel-slide<?php echo $index === 0 ? ' active' : ''; ?>" style="background-image: url('<?php echo htmlspecialchars($slide['image']); ?>');">
+                        <div class="slide-overlay"></div>
+                        <div class="slide-content">
+                            <?php if (!empty($slide['tagline'])): ?>
+                                <p class="slide-tagline"><?php echo htmlspecialchars($slide['tagline']); ?></p>
+                            <?php endif; ?>
+                            <h1 class="slide-title"><?php echo nl2br(htmlspecialchars($slide['title'])); ?></h1>
+                            <?php if (!empty($slide['description'])): ?>
+                                <p class="slide-description"><?php echo htmlspecialchars($slide['description']); ?></p>
+                            <?php endif; ?>
+                            <div class="button-group">
+                                <?php if (!empty($slide['btn_primary_text'])): ?>
+                                    <a href="<?php echo htmlspecialchars($slide['btn_primary_link'] ?? '#plan'); ?>" class="btn btn-primary smooth-scroll"><?php echo htmlspecialchars($slide['btn_primary_text']); ?></a>
+                                <?php endif; ?>
+                                <?php if (!empty($slide['btn_secondary_text'])): ?>
+                                    <a href="<?php echo htmlspecialchars($slide['btn_secondary_link'] ?? '#explore'); ?>" class="btn btn-secondary smooth-scroll"><?php echo htmlspecialchars($slide['btn_secondary_text']); ?></a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+            <!-- Fallback slides when database is empty -->
             <div class="carousel-slide active" style="background-image: url('images/Background for slide 1.jpg');">
                 <div class="slide-overlay"></div>
                 <div class="slide-content">
@@ -28,38 +72,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Slide 2 -->
-            <div class="carousel-slide" style="background-image: url('images/Background for slide 2 .jpg');">
-                <div class="slide-overlay"></div>
-                <div class="slide-content">
-                    <p class="slide-tagline">Cultural heritage meets modern charm</p>
-                    <h1 class="slide-title">Experience<br>Local Culture</h1>
-                    <p class="slide-description">
-                        Immerse yourself in the vibrant traditions, local cuisine, and warm hospitality of Tagum City. Discover authentic experiences that celebrate our rich heritage.
-                    </p>
-                    <div class="button-group">
-                        <a href="#plan" class="btn btn-primary smooth-scroll">Explore Now</a>
-                        <a href="#explore" class="btn btn-secondary smooth-scroll">Learn More</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slide 3 -->
-            <div class="carousel-slide" style="background-image: url('images/Background for slide 3.jpg');">
-                <div class="slide-overlay"></div>
-                <div class="slide-content">
-                    <p class="slide-tagline">Tagum Adventures: Feel the Thrill, Live the Moment</p>
-                    <h1 class="slide-title">Thrilling<br>Adventures</h1>
-                    <p class="slide-description">
-                        Step into the excitement that awaits in Tagum where every journey is filled with adrenaline, discovery, and unforgettable moments. From outdoor explorations to vibrant city experiences, adventure is always just around the corner.
-                    </p>
-                    <div class="button-group">
-                        <a href="#plan" class="btn btn-primary smooth-scroll">Explore Now</a>
-                        <a href="#explore" class="btn btn-secondary smooth-scroll">Learn More</a>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
 
             <!-- Navigation Arrows -->
             <button class="carousel-btn carousel-btn-prev" onclick="changeSlide(-1)">❮</button>
@@ -68,9 +81,12 @@
 
         <!-- Carousel Dots -->
         <div class="carousel-dots">
-            <span class="dot active" onclick="currentSlide(1)"></span>
-            <span class="dot" onclick="currentSlide(2)"></span>
-            <span class="dot" onclick="currentSlide(3)"></span>
+            <?php
+            $dotCount = !empty($carouselSlides) ? count($carouselSlides) : 1;
+            for ($i = 1; $i <= $dotCount; $i++):
+            ?>
+                <span class="dot<?php echo $i === 1 ? ' active' : ''; ?>" onclick="currentSlide(<?php echo $i; ?>)"></span>
+            <?php endfor; ?>
         </div>
     </section>
 
@@ -84,7 +100,7 @@
                 <div class="card-image">👥</div>
                 <h3>Events</h3>
                 <p>Experience the rich history and cultural heritage of our community.</p>
-                <a href="Explore module/explore.php?section=events" class="card-link">Learn More →</a>
+                <a href="Explore module/events-calendar.php" class="card-link">Learn More →</a>
             </div>
             
             <!-- Festivals Card -->
@@ -92,7 +108,7 @@
                 <div class="card-image">🎉</div>
                 <h3>Festivals</h3>
                 <p>Join vibrant local festivals showcasing music, dance, and culture.</p>
-                <a href="Explore module/explore.php?section=festivals" class="card-link">Learn More →</a>
+                <a href="Explore%20Module/explore.php?section=festivals" class="card-link">Learn More →</a>
             </div>
         </div>
     </section>

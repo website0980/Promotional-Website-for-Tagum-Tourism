@@ -27,6 +27,19 @@
         .home-btn { background: #3b82f6; font-size: 1rem; padding: 0.75rem 1rem; }
         .location-btn { background: #3b82f6; }
         .loading { opacity: 0.5; pointer-events: none; }
+        .events-by-month { max-width: 1100px; margin: 0 auto; }
+        .month-group { margin-bottom: 1rem; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: #fff; }
+        .month-header { width: 100%; text-align: left; background: #fff; border: none; padding: 1.25rem 1.5rem; cursor: pointer; }
+        .month-header-top { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .month-label { font-size: 1.35rem; font-weight: 700; color: #1d5a3d; }
+        .month-count { background: #e8f5ee; color: #1d5a3d; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.9rem; font-weight: 600; }
+        .month-chevron { margin-left: auto; transition: transform 0.3s ease; color: #1d5a3d; }
+        .month-group.is-open .month-chevron { transform: rotate(180deg); }
+        .month-preview { margin: 0.75rem 0 0; color: #6b7280; line-height: 1.5; }
+        .month-events { padding: 0 1.5rem 1.5rem; }
+        .event-month-card { height: auto; min-height: 420px; }
+        .event-date-badge { display: inline-block; width: fit-content; }
+        .event-location { color: #6b7280; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -47,59 +60,49 @@
     </nav>
 
     <section class="experiences">
-        <div class="controls">
+        <div class="controls" style="display:none;">
             <button id="get-home" class="btn-sort home-btn">🏠 Home</button>
             <button id="get-location" class="btn-sort location-btn">📍 Scan</button>
         </div>
 
         <?php
-        $dbFile = '../database.db';
-        $events = [];
+        require_once dirname(__DIR__) . '/includes/events_helpers.php';
+        $events = loadEvents(dirname(__DIR__) . '/database.db');
         $userLat = isset($_GET['lat']) ? floatval($_GET['lat']) : null;
         $userLng = isset($_GET['lng']) ? floatval($_GET['lng']) : null;
         $sortByDistance = $userLat !== null && $userLng !== null;
 
         function haversineDistance($lat1, $lon1, $lat2, $lon2) {
-            $earthRadius = 6371; // km
+            $earthRadius = 6371;
             $dLat = deg2rad($lat2 - $lat1);
             $dLon = deg2rad($lon2 - $lon1);
             $a = sin($dLat/2) * sin($dLat/2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon/2) * sin($dLon/2);
             $c = 2 * atan2(sqrt($a), sqrt(1-$a));
             return $earthRadius * $c;
         }
-        
-        if (file_exists($dbFile)) {
-            $db = new SQLite3($dbFile);
-            $result = $db->query('SELECT * FROM events ORDER BY id DESC');
-            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-                if ($sortByDistance && !is_null($row['latitude']) && !is_null($row['longitude'])) {
-                    $row['distance'] = haversineDistance($userLat, $userLng, $row['latitude'], $row['longitude']);
+
+        if ($sortByDistance) {
+            foreach ($events as &$event) {
+                if (!is_null($event['latitude']) && !is_null($event['longitude'])) {
+                    $event['distance'] = haversineDistance($userLat, $userLng, $event['latitude'], $event['longitude']);
                 } else {
-                    $row['distance'] = 0.0;
+                    $event['distance'] = 999999;
                 }
-                $events[] = $row;
             }
-            $db->close();
-            
-            if ($sortByDistance) {
-                usort($events, function($a, $b) {
-                    return $a['distance'] <=> $b['distance'];
-                });
-            }
+            unset($event);
+            usort($events, function($a, $b) {
+                return ($a['distance'] ?? 999999) <=> ($b['distance'] ?? 999999);
+            });
         }
-        foreach ($events as $event): ?>
-            <a href="event1-detail.php?id=<?php echo $event['id']; ?>" class="experience-item" style="position: relative; z-index: 10;"></a>
-                <?php if (!empty($event['image'])): ?>
-                    <img src="<?php echo htmlspecialchars($event['image']); ?>" alt="<?php echo htmlspecialchars($event['name']); ?>">
-                <?php else: ?>
-                    <img src="../assets/images/experience-default.jpg" alt="<?php echo htmlspecialchars($event['location']); ?>">
-                <?php endif; ?>
-                <h3><?php echo htmlspecialchars($event['name']); ?></h3>
-                <p><?php echo htmlspecialchars(substr($event['description'] ?? $event['history'] ?? 'No description', 0, 100)); ?>...</p>
-                <span class="experience-cta distance"><?php echo number_format($event['distance'], 1); ?> km away</span>
-            </a>
-        <?php endforeach; ?>
-        <?php if (empty($events)): ?>
+        ?>
+
+        <h2>Events by Month</h2>
+        <?php if (!empty($events)): ?>
+            <?php
+            $detailBase = 'event1-detail.php';
+            include dirname(__DIR__) . '/includes/events_month_view.php';
+            ?>
+        <?php else: ?>
             <div class="experience-item no-data">
                 <img src="../assets/images/experience-default.jpg" alt="No data">
                 <h3>No Events Found</h3>
@@ -109,9 +112,10 @@
     </section>
 
     <script>
-        document.getElementById('get-home').onclick = function() {
-            window.location.href = '../index.php';
-        };
+        // get-home button hidden
+        // document.getElementById('get-home').onclick = function() {
+        //     window.location.href = '../index.php';
+        // };
 
         document.getElementById('get-location').onclick = function() {
             const btn = this;
@@ -143,6 +147,7 @@
             }
         };
     </script>
+    <script src="../js/explore-full-page.js"></script>
 </body>
 </html>
 

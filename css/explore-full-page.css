@@ -81,22 +81,10 @@
 /* Section Content */
 .section-content {
     display: none;
-    animation: fadeIn 0.5s ease;
 }
 
 .section-content.active {
     display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .section-content h1 {
@@ -166,6 +154,29 @@
     font-weight: 600;
 }
 
+.calendar-view-link {
+    margin-bottom: 1.5rem;
+}
+
+.calendar-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--dark-green);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.calendar-view-btn:hover {
+    background: var(--light-green);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 /* Cuisine Grid Styles - For cultural sites & festivals */
 .cuisine-grid {
     display: grid;
@@ -184,16 +195,16 @@
     background-color: var(--white);
     border: 1px solid var(--light-gray);
     border-radius: 16px;
-    padding: 2.5rem;
+    padding: 2rem;
     transition: all 0.3s ease;
     box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    height: 620px;
     display: flex;
     flex-direction: column;
+    min-height: 360px;
 }
 
 .cuisine-category.landscape-category {
-    height: 680px;
+    min-height: auto;
 }
 
 .cuisine-category:hover {
@@ -219,27 +230,191 @@
 
 .cuisine-category h3 {
     color: var(--dark-green);
-    font-size: 1.6rem;
-    margin-bottom: 0.75rem;
+    font-size: 1.4rem;
+    margin-bottom: 0.85rem;
 }
 
 .cuisine-category > p {
     color: var(--gray);
     margin-bottom: 1rem;
     line-height: 1.7;
-    font-size: 1.05rem;
+    font-size: 1rem;
 }
 
 .item-count {
     font-size: 1rem;
-    color: var(--light-green);
+    color: var(--white);
     font-weight: 700;
     margin-bottom: 1.5rem;
     padding: 0.5rem 1rem;
     background: var(--light-green);
-    color: white;
     border-radius: 20px;
     display: inline-block;
+}
+
+/* Events grouped by month */
+.events-section-wrapper {
+    max-width: 1200px;
+    margin: 2rem auto 0;
+}
+
+.events-by-month {
+    margin: 0;
+    max-width: 100%;
+}
+
+.month-group {
+    background: var(--white);
+    border: 1px solid var(--light-gray);
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.month-header {
+    width: 100%;
+    text-align: left;
+    background: var(--white);
+    border: none;
+    padding: 1.4rem 1.75rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.month-header:hover {
+    background: #f8faf9;
+}
+
+.month-header-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.month-label {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--dark-green);
+}
+
+.month-count {
+    background: #e8f5ee;
+    color: var(--dark-green);
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.month-chevron {
+    margin-left: auto;
+    color: var(--dark-green);
+    transition: transform 0.25s ease;
+}
+
+.month-group.is-open .month-chevron {
+    transform: rotate(180deg);
+}
+
+.month-preview {
+    margin: 0.9rem 0 0;
+    color: var(--gray);
+    line-height: 1.65;
+    font-size: 1rem;
+}
+
+.month-events {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.events-month-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.event-month-card {
+    position: relative;
+    background: var(--white);
+    border: 1px solid var(--light-gray);
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.event-month-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12);
+}
+
+.event-month-card .category-image {
+    height: 180px;
+    object-fit: cover;
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+}
+
+.event-month-card h3 {
+    font-size: 1.2rem;
+    margin: 0 0 0.85rem 0;
+    color: var(--dark-gray);
+}
+
+.event-date-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #e8f5ee;
+    color: var(--dark-green);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.event-location {
+    color: var(--gray);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.event-month-card p {
+    color: var(--gray);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.read-more-btn {
+    margin-top: auto;
+    background: var(--dark-green);
+    color: #ffffff !important;
+    padding: 0.85rem 1.2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.read-more-btn:hover {
+    background: var(--light-green);
+    color: #ffffff !important;
+}
+
+.cuisine-category.event-month-card {
+    height: auto;
+    min-height: auto;
+    padding: 1.5rem;
 }
 
 /* Toggle Button */
@@ -263,6 +438,118 @@
 }
 
 /* Items List */
+
+@media (max-width: 900px) {
+    .explore-full-page {
+        padding: 1.5rem 1rem;
+        min-height: auto;
+    }
+
+    .content-text {
+        padding: 1.75rem;
+    }
+
+    .section-content h1 {
+        font-size: 2.4rem;
+    }
+
+    .section-content h2 {
+        font-size: 1.6rem;
+    }
+
+    .calendar-view-btn,
+    .list-view-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .events-section-wrapper,
+    .events-by-month,
+    .cuisine-grid {
+        max-width: 100%;
+        margin: 1.5rem auto 0;
+    }
+
+    .events-month-grid,
+    .cuisine-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .event-month-card,
+    .cuisine-category {
+        padding: 1.25rem;
+        min-height: auto;
+    }
+
+    .event-month-card .category-image {
+        height: 200px;
+    }
+
+    .month-header {
+        padding: 1.15rem 1.25rem;
+    }
+
+    .month-preview {
+        font-size: 0.95rem;
+    }
+
+    .month-header-top {
+        gap: 0.5rem;
+    }
+
+    .event-month-card h3 {
+        font-size: 1.1rem;
+    }
+
+    .event-date-badge,
+    .event-location,
+    .event-month-card p {
+        font-size: 0.95rem;
+    }
+
+    .event-month-card .read-more-btn {
+        width: 100%;
+        padding: 0.85rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .section-tabs {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+
+    .content-text {
+        padding: 1.5rem;
+    }
+
+    .calendar-view-btn,
+    .list-view-btn {
+        padding: 0.75rem 1rem;
+    }
+
+    .event-month-card .category-image {
+        height: 160px;
+    }
+
+    .month-header {
+        padding: 1rem 1rem;
+    }
+
+    .month-header-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .month-chevron {
+        margin-left: 0;
+    }
+}
+
 .items-list {
     margin-top: 1.5rem;
     max-height: 0;

@@ -75,4 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.display = 'none';
         });
     });
+
+    // Add confirmation popup for contact email link
+    const contactEmailLink = document.querySelector('.contact-row a[href^="mailto:"]');
+    if (contactEmailLink) {
+        contactEmailLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const proceed = window.confirm('Open an email app to send a message?');
+            if (proceed) {
+                window.location.href = this.href;
+            }
+        });
+    }
 });

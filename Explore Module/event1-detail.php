@@ -74,23 +74,7 @@
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <img src="../assets/images/CityofTagum.png" alt="Tagum City" class="logo-img">
-                <span class="logo-text">Tagum City</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="../index.php#home" class="nav-link">Home</a></li>
-                <li><a href="../index.php#explore" class="nav-link">Explore</a></li>
-                <li><a href="../index.php#experiences" class="nav-link">Experiences</a></li>
-                <li><a href="../index.php#plan" class="nav-link">Plan</a></li>
-                <li><a href="../index.php#hotels-restaurants" class="nav-link">Hotels & Restaurants</a></li>
-                <li><a href="../index.php#contact" class="nav-link">Contact us</a></li>
-            </ul>
-        </div>
-    </nav>
+<?php include '../navbar.php'; ?>
 
     <!-- Event Detail -->
     <main class="main-content" style="padding-top: 2rem; padding-bottom: 3rem;">
@@ -123,6 +107,11 @@
 
             <div class="event-header">
                 <h1><?php echo htmlspecialchars($event['name']); ?></h1>
+                <?php if (!empty($event['event_date'])): ?>
+                    <p style="font-size: 1.1rem; color: #1d5a3d; font-weight: 600; margin-top: 0.5rem;">
+                        📅 <?php echo htmlspecialchars(date('F j, Y', strtotime($event['event_date']))); ?>
+                    </p>
+                <?php endif; ?>
             </div>
 
             <?php if (!empty($event['image'])): ?>

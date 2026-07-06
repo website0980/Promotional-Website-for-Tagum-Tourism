@@ -43,9 +43,39 @@ function showSection(sectionId) {
 // Get section from URL parameter on page load - Force show correct section
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section') || 'events'; // Default to first tab
+    const section = urlParams.get('section') || 'events';
     setTimeout(() => showSection(section), 100);
+    initEventsByMonth();
 });
+
+function initEventsByMonth() {
+    const monthGroups = document.querySelectorAll('.month-group');
+    if (!monthGroups.length) return;
+
+    monthGroups.forEach((group) => {
+        const header = group.querySelector('.month-header');
+        const panel = group.querySelector('.month-events');
+        if (!header || !panel) return;
+
+        header.addEventListener('click', () => {
+            const isOpen = group.classList.contains('is-open');
+
+            monthGroups.forEach((otherGroup) => {
+                otherGroup.classList.remove('is-open');
+                const otherHeader = otherGroup.querySelector('.month-header');
+                const otherPanel = otherGroup.querySelector('.month-events');
+                if (otherHeader) otherHeader.setAttribute('aria-expanded', 'false');
+                if (otherPanel) otherPanel.hidden = true;
+            });
+
+            if (!isOpen) {
+                group.classList.add('is-open');
+                header.setAttribute('aria-expanded', 'true');
+                panel.hidden = false;
+            }
+        });
+    });
+}
 
 // Smooth scroll for breadcrumb and navigation links
 document.querySelectorAll('a[href*="#"]').forEach(anchor => {

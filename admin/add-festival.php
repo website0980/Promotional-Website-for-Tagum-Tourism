@@ -1,9 +1,11 @@
 <?php
 // Add/Edit Festival Page
 require_once 'config.php';
+require_once dirname(__DIR__) . '/includes/events_helpers.php';
 requireAuth();
 
 $festivals = loadFestivals();
+$events = loadEvents(dirname(__DIR__) . '/database.db');
 $isEdit = false;
 $festivalIndex = $_GET['id'] ?? $_GET['edit'] ?? $_POST['id'] ?? null;
 if ($festivalIndex !== null && $festivalIndex !== '') {
@@ -19,7 +21,8 @@ $festival = [
     'image' => '',
     'date' => '',
     'highlights' => '',
-    'activities' => ''
+    'activities' => '',
+    'related_event_id' => ''
 ];
 
 // If editing, load the festival
@@ -37,7 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'image' => $_POST['image'] ?? '',
         'date' => $_POST['date'] ?? '',
         'highlights' => $_POST['highlights'] ?? '',
-        'activities' => $_POST['activities'] ?? ''
+        'activities' => $_POST['activities'] ?? '',
+        'related_event_id' => $_POST['related_event_id'] ?? ''
     ];
 
     // Preserve original image if editing, no new upload, and hidden input empty
@@ -164,6 +168,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             class="form-control"
                             placeholder="e.g., August 15-17, Monthly, Annual"
                         >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="related_event_id">Related Event</label>
+                        <select id="related_event_id" name="related_event_id" class="form-control">
+                            <option value="">No related event</option>
+                            <?php foreach ($events as $event): ?>
+                                <?php $eventId = (int) ($event['id'] ?? 0); ?>
+                                <option value="<?php echo $eventId; ?>" <?php echo ((string) ($festival['related_event_id'] ?? '') === (string) $eventId) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars((string) ($event['name'] ?? '')); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small>Choose the event this festival should appear next to on the Explore page.</small>
                     </div>
 
                     <div class="form-section">

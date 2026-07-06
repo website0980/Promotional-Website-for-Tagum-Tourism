@@ -9,6 +9,7 @@ $events = loadCulturalSites(); // Events data loaded from cultural sites
 $festivals = loadFestivals();
 $hotels = loadHotels();
 $restaurants = loadRestaurants();
+$carouselSlides = loadCarouselSlides();
 
 $message = '';
 $messageType = '';
@@ -53,6 +54,29 @@ case 'toggle-featured':
             }
             break;
 
+        case 'toggle-carousel-active':
+            if ($id !== null) {
+                toggleCarouselSlideActive($id);
+                $message = 'Slide visibility updated!';
+                $messageType = 'success';
+                $carouselSlides = loadCarouselSlides();
+            }
+            break;
+
+    }
+}
+
+if (isset($_GET['message']) && $currentTab === 'carousel') {
+    $msg = $_GET['message'];
+    if ($msg === 'added') {
+        $message = 'Carousel slide added successfully!';
+        $messageType = 'success';
+    } elseif ($msg === 'updated') {
+        $message = 'Carousel slide updated successfully!';
+        $messageType = 'success';
+    } elseif ($msg === 'deleted') {
+        $message = 'Carousel slide deleted.';
+        $messageType = 'success';
     }
 }
 ?>
@@ -98,6 +122,7 @@ case 'toggle-featured':
                 <a href="?tab=festivals" class="btn btn-primary tab-btn <?php echo $currentTab === 'festivals' ? 'active' : ''; ?>">Festivals</a>
                 <a href="?tab=hotels" class="btn btn-primary tab-btn <?php echo $currentTab === 'hotels' ? 'active' : ''; ?>">Hotels</a>
                 <a href="?tab=restaurants" class="btn btn-primary tab-btn <?php echo $currentTab === 'restaurants' ? 'active' : ''; ?>">Restaurants</a>
+                <a href="?tab=carousel" class="btn btn-primary tab-btn <?php echo $currentTab === 'carousel' ? 'active' : ''; ?>">Carousel</a>
                 <div class="admin-search-wrapper">
                     <input type="text" id="adminSearch" class="admin-search-input" placeholder="🔍 Search <?php echo ucfirst($currentTab); ?>..." onkeyup="filterAdminTable()">
                 </div>
@@ -186,7 +211,9 @@ case 'toggle-featured':
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($experiences as $index => $experience): ?>
+<?php foreach ($experiences as $index => $experience): ?>
+
+
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($experience['image'])): ?>
@@ -207,14 +234,14 @@ case 'toggle-featured':
                                         <td>
                                             <form method="POST" style="display: inline;">
                                                 <input type="hidden" name="action" value="toggle-featured-experience">
-                                                <input type="hidden" name="id" value="<?php echo $index; ?>">
+<input type="hidden" name="id" value="<?php echo $experience['id']; ?>">
                                                 <button type="submit" class="featured-btn <?php echo ($experience['featured'] ?? false) ? 'active' : ''; ?>">
                                                     ⭐ <?php echo ($experience['featured'] ?? false) ? 'Featured' : 'Not Featured'; ?>
                                                 </button>
                                             </form>
                                         </td>
                                         <td class="action-buttons">
-                                            <a href="add-experience.php?id=<?php echo $index; ?>" class="btn btn-small btn-edit">Edit</a>
+<a href="add-experience.php?id=<?php echo $experience['id']; ?>" class="btn btn-small btn-edit">Edit</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -244,6 +271,7 @@ case 'toggle-featured':
                                 <tr>
                                     <th>Image</th>
                                     <th>Name</th>
+                                    <th>Date</th>
                                     <th>Location</th>
                                     <th>Actions</th>
                                 </tr>
@@ -260,6 +288,15 @@ case 'toggle-featured':
                                         </td>
                                         <td>
                                             <strong><?php echo htmlspecialchars($site['name']); ?></strong>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            if (!empty($site['event_date'])) {
+                                                echo htmlspecialchars(date('M j, Y', strtotime($site['event_date'])));
+                                            } else {
+                                                echo '<span class="no-image">Not set</span>';
+                                            }
+                                            ?>
                                         </td>
                                         <td>
                                             <?php echo htmlspecialchars($site['location'] ?? 'N/A'); ?>
@@ -420,10 +457,70 @@ case 'toggle-featured':
                                         <td class="action-buttons">
                                             <a href="add-restaurant.php?id=<?php echo $restaurant['id']; ?>" class="btn btn-small btn-edit">Edit</a>
                                         </td>
-</xai:function_call > 
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
-<xai:function_call name="edit_file">
+            <?php if ($currentTab === 'carousel'): ?>
+                <div class="dashboard-header">
+                    <h2>Manage Homepage Carousel</h2>
+                    <a href="add-carousel-slide.php" class="btn btn-primary">+ Add Carousel Slide</a>
+                </div>
 
+                <div class="table-responsive">
+                    <?php if (empty($carouselSlides)): ?>
+                        <div class="empty-state">
+                            <p>No carousel slides found</p>
+                            <a href="add-carousel-slide.php" class="btn btn-primary">Add your first slide</a>
+                        </div>
+                    <?php else: ?>
+                        <table class="destinations-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Main Heading</th>
+                                    <th>Tagline</th>
+                                    <th>Order</th>
+                                    <th>Visible</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($carouselSlides as $carouselSlide): ?>
+                                    <?php
+                                    $carouselImg = $carouselSlide['image'] ?? '';
+                                    if ($carouselImg && strpos($carouselImg, 'http') !== 0 && strpos($carouselImg, '../') !== 0) {
+                                        $carouselImg = '../' . ltrim($carouselImg, '/');
+                                    }
+                                    $titlePreview = str_replace("\n", ' ', $carouselSlide['title'] ?? '');
+                                    ?>
+                                    <tr>
+                                        <td class="table-image">
+                                            <?php if (!empty($carouselSlide['image'])): ?>
+                                                <img src="<?php echo htmlspecialchars($carouselImg); ?>" alt="<?php echo htmlspecialchars($titlePreview); ?>">
+                                            <?php else: ?>
+                                                <span class="no-image">No Image</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><strong><?php echo htmlspecialchars($titlePreview); ?></strong></td>
+                                        <td><?php echo htmlspecialchars($carouselSlide['tagline'] ?? ''); ?></td>
+                                        <td><?php echo (int) ($carouselSlide['sort_order'] ?? 0); ?></td>
+                                        <td>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="action" value="toggle-carousel-active">
+                                                <input type="hidden" name="id" value="<?php echo $carouselSlide['id']; ?>">
+                                                <button type="submit" class="featured-btn <?php echo !empty($carouselSlide['active']) ? 'active' : ''; ?>">
+                                                    <?php echo !empty($carouselSlide['active']) ? 'Visible' : 'Hidden'; ?>
+                                                </button>
+                                            </form>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <a href="add-carousel-slide.php?id=<?php echo $carouselSlide['id']; ?>" class="btn btn-small btn-edit">Edit</a>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

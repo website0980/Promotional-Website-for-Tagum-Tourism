@@ -1,9 +1,10 @@
 <?php
 // CLEAN ORIGINAL - NO DEBUG - WORKS
 require_once 'config.php';
+require_once 'db_experience_helpers.php';
 requireAuth();
 
-$experiences = loadExperiences();
+
 $isEdit = false;
 $experience = [
     'id' => '',
@@ -18,19 +19,26 @@ $experience = [
 $id = $_GET['id'] ?? $_POST['id'] ?? null;
 if ($id !== null && $id !== '') {
     $id = (int) $id;
+    // Load from DB for edit
+    $db = new SQLite3('../database.db');
+    $stmt = $db->prepare('SELECT * FROM experiences WHERE id = :id');
+    $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+    $row = $result->fetchArray(SQLITE3_ASSOC);
+    if ($row) {
+        $isEdit = true;
+        $experience = $row;
+        $experience['featured'] = !empty($row['featured']);
+    }
+    $db->close();
 }
 $errors = [];
 $message = '';
 
-if ($id !== null && $id !== '' && isset($experiences[$id])) {
-    $isEdit = true;
-    $experience = $experiences[$id];
-}
-
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $experience = [
-        'id' => $_POST['id'] ?? time(),
+        'id' => $_POST['id'] ?? '',
         'name' => $_POST['name'] ?? '',
         'type' => $_POST['type'] ?? '',
         'description' => $_POST['description'] ?? '',
@@ -67,13 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         if (empty($errors)) {
-            if ($isEdit) {
-                $experiences[$id] = $experience;
-            } else {
-                $experiences[] = $experience;
-            }
-            
-            saveExperiences($experiences);
+            // Save to DB
+            $savedId = db_save_experience($experience, $isEdit);
             header('Location: dashboard.php?tab=experiences&message=' . ($isEdit ? 'updated' : 'added'));
             exit();
         }

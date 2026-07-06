@@ -46,6 +46,9 @@ define('HOTEL_IMAGES_URL', '../../assets/images/hotels/');
 define('RESTAURANT_IMAGES_DIR', dirname(__DIR__) . '/images/restaurants/');
 define('RESTAURANT_IMAGES_URL', '../../images/restaurants/');
 
+define('CAROUSEL_IMAGES_DIR', dirname(__DIR__) . '/images/carousel/');
+define('CAROUSEL_IMAGES_URL', 'images/carousel/');
+
 function isLoggedIn() {
     if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
         return false;
@@ -129,8 +132,10 @@ function loadCulturalSites() {
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
+        require_once dirname(__DIR__) . '/includes/events_helpers.php';
         $db = new SQLite3($dbFile);
-        $query = "SELECT * FROM events ORDER BY name ASC";
+        ensureEventDateColumn($db);
+        $query = "SELECT * FROM events ORDER BY CASE WHEN event_date IS NULL OR event_date = '' THEN 1 ELSE 0 END, event_date ASC, name ASC";
         $result = $db->query($query);
         $culturalSites = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $culturalSites[] = $row;
@@ -139,18 +144,99 @@ function loadCulturalSites() {
     } catch (Exception $e) { return []; }
 }
 
+function ensureFestivalRelatedEventColumn($db = null) {
+    $closeDb = false;
+    if ($db === null) {
+        $dbFile = dirname(__DIR__) . '/database.db';
+        if (!file_exists($dbFile)) {
+            return false;
+        }
+        $db = new SQLite3($dbFile);
+        $closeDb = true;
+    }
+
+    $columns = [];
+    $result = $db->query('PRAGMA table_info(festivals)');
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $columns[] = $row['name'];
+    }
+
+    if (!in_array('related_event_id', $columns, true)) {
+        $db->exec('ALTER TABLE festivals ADD COLUMN related_event_id INTEGER');
+    }
+
+    if (!in_array('related_event_name', $columns, true)) {
+        $db->exec('ALTER TABLE festivals ADD COLUMN related_event_name TEXT');
+    }
+
+    if ($closeDb) {
+        $db->close();
+    }
+    return true;
+}
+
 function loadFestivals() {
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
         $db = new SQLite3($dbFile);
-        $query = "SELECT * FROM festivals";
+        ensureFestivalRelatedEventColumn($db);
+        $query = "SELECT * FROM festivals ORDER BY id";
         $result = $db->query($query);
         $festivals = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $festivals[] = $row;
         $db->close();
         return $festivals;
     } catch (Exception $e) { return []; }
+}
+
+function saveFestivals(array $festivals) {
+    $dbFile = dirname(__DIR__) . '/database.db';
+    if (!file_exists($dbFile)) return false;
+
+    try {
+        $db = new SQLite3($dbFile);
+        ensureFestivalRelatedEventColumn($db);
+        $db->exec('DELETE FROM festivals');
+
+        $order = 1;
+        foreach ($festivals as $festival) {
+            $id = isset($festival['id']) && is_numeric($festival['id']) ? (int) $festival['id'] : $order;
+            $name = $db->escapeString((string) ($festival['name'] ?? ''));
+            $description = $db->escapeString((string) ($festival['description'] ?? ''));
+            $image = $db->escapeString((string) ($festival['image'] ?? ''));
+            $date = $db->escapeString((string) ($festival['date'] ?? ''));
+            $highlights = $db->escapeString((string) ($festival['highlights'] ?? ''));
+            $activities = $db->escapeString((string) ($festival['activities'] ?? ''));
+            $relatedEventId = '';
+            if (!empty($festival['related_event_id'])) {
+                $relatedEventId = (int) $festival['related_event_id'];
+            }
+            $relatedEventName = $db->escapeString((string) ($festival['related_event_name'] ?? ''));
+
+            $stmt = $db->prepare('INSERT INTO festivals (id, name, description, image, date, highlights, activities, related_event_id, related_event_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bindValue(1, $id, SQLITE3_INTEGER);
+            $stmt->bindValue(2, $name, SQLITE3_TEXT);
+            $stmt->bindValue(3, $description, SQLITE3_TEXT);
+            $stmt->bindValue(4, $image, SQLITE3_TEXT);
+            $stmt->bindValue(5, $date, SQLITE3_TEXT);
+            $stmt->bindValue(6, $highlights, SQLITE3_TEXT);
+            $stmt->bindValue(7, $activities, SQLITE3_TEXT);
+            if ($relatedEventId !== '') {
+                $stmt->bindValue(8, $relatedEventId, SQLITE3_INTEGER);
+            } else {
+                $stmt->bindValue(8, null, SQLITE3_NULL);
+            }
+            $stmt->bindValue(9, $relatedEventName, SQLITE3_TEXT);
+            $stmt->execute();
+            $order++;
+        }
+
+        $db->close();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
 }
 
 // HOTEL FUNCTIONS
@@ -453,6 +539,182 @@ function saveExperiences($experiences) {
         return true;
     }
     return false;
+}
+
+// CAROUSEL FUNCTIONS
+function ensureCarouselTable() {
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return false;
+    try {
+        $db = new SQLite3($dbFile);
+        $schema = file_get_contents(dirname(__DIR__) . '/database/carousel_schema.sql');
+        if ($schema) {
+            $db->exec($schema);
+        }
+        $count = (int) $db->querySingle('SELECT COUNT(*) FROM carousel_slides');
+        if ($count === 0) {
+            $defaults = [
+                ['Tagumeños: Beauty that Shines from Within.', "Discover\nNatural Beauty", 'Tagumeños are a reflection of true natural beauty radiating warmth, kindness, and genuine smiles that make everyone feel welcome.', 'images/Background for slide 1.jpg', 1],
+                ['Cultural heritage meets modern charm', "Experience\nLocal Culture", 'Immerse yourself in the vibrant traditions, local cuisine, and warm hospitality of Tagum City. Discover authentic experiences that celebrate our rich heritage.', 'images/Background for slide 2 .jpg', 2],
+                ['Tagum Adventures: Feel the Thrill, Live the Moment', "Thrilling\nAdventures", 'Step into the excitement that awaits in Tagum where every journey is filled with adrenaline, discovery, and unforgettable moments. From outdoor explorations to vibrant city experiences, adventure is always just around the corner.', 'images/Background for slide 3.jpg', 3],
+            ];
+            $stmt = $db->prepare('INSERT INTO carousel_slides (tagline, title, description, image, sort_order, active) VALUES (?, ?, ?, ?, ?, 1)');
+            foreach ($defaults as $row) {
+                $stmt->bindValue(1, $row[0], SQLITE3_TEXT);
+                $stmt->bindValue(2, $row[1], SQLITE3_TEXT);
+                $stmt->bindValue(3, $row[2], SQLITE3_TEXT);
+                $stmt->bindValue(4, $row[3], SQLITE3_TEXT);
+                $stmt->bindValue(5, $row[4], SQLITE3_INTEGER);
+                $stmt->execute();
+            }
+        }
+        $db->close();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+function loadCarouselSlides($activeOnly = false) {
+    ensureCarouselTable();
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return [];
+    try {
+        $db = new SQLite3($dbFile);
+        $query = $activeOnly
+            ? 'SELECT * FROM carousel_slides WHERE active = 1 ORDER BY sort_order ASC, id ASC'
+            : 'SELECT * FROM carousel_slides ORDER BY sort_order ASC, id ASC';
+        $result = $db->query($query);
+        $slides = [];
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $slides[] = $row;
+        }
+        $db->close();
+        return $slides;
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
+function getCarouselSlideById($id) {
+    ensureCarouselTable();
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return null;
+    try {
+        $db = new SQLite3($dbFile);
+        $stmt = $db->prepare('SELECT * FROM carousel_slides WHERE id = ?');
+        $stmt->bindValue(1, (int)$id, SQLITE3_INTEGER);
+        $result = $stmt->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $db->close();
+        return $row ?: null;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+function saveCarouselImage($file) {
+    $validation = validateImageUpload($file);
+    if (!$validation['success']) return $validation;
+    if (!is_dir(CAROUSEL_IMAGES_DIR)) mkdir(CAROUSEL_IMAGES_DIR, 0755, true);
+    $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $fileName = 'carousel_' . time() . '_' . uniqid() . '.' . $fileExt;
+    $filePath = CAROUSEL_IMAGES_DIR . $fileName;
+    if (move_uploaded_file($file['tmp_name'], $filePath)) {
+        return ['success' => true, 'fileName' => $fileName, 'path' => CAROUSEL_IMAGES_URL . $fileName];
+    }
+    return ['success' => false, 'error' => 'Failed to save image'];
+}
+
+function deleteCarouselImage($pathOrFileName) {
+    $fileName = basename($pathOrFileName);
+    if (empty($fileName)) return false;
+    $filePath = CAROUSEL_IMAGES_DIR . $fileName;
+    if (file_exists($filePath)) unlink($filePath);
+    return !file_exists($filePath);
+}
+
+function saveCarouselSlide($data, $id = null) {
+    ensureCarouselTable();
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return false;
+    try {
+        $db = new SQLite3($dbFile);
+        if ($id === null) {
+            $stmt = $db->prepare('INSERT INTO carousel_slides (tagline, title, description, image, btn_primary_text, btn_primary_link, btn_secondary_text, btn_secondary_link, sort_order, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bindValue(1, $data['tagline'] ?? '', SQLITE3_TEXT);
+            $stmt->bindValue(2, $data['title'] ?? '', SQLITE3_TEXT);
+            $stmt->bindValue(3, $data['description'] ?? '', SQLITE3_TEXT);
+            $stmt->bindValue(4, $data['image'] ?? '', SQLITE3_TEXT);
+            $stmt->bindValue(5, $data['btn_primary_text'] ?? 'Explore Now', SQLITE3_TEXT);
+            $stmt->bindValue(6, $data['btn_primary_link'] ?? '#plan', SQLITE3_TEXT);
+            $stmt->bindValue(7, $data['btn_secondary_text'] ?? 'Learn More', SQLITE3_TEXT);
+            $stmt->bindValue(8, $data['btn_secondary_link'] ?? '#explore', SQLITE3_TEXT);
+            $stmt->bindValue(9, isset($data['sort_order']) ? (int)$data['sort_order'] : 0, SQLITE3_INTEGER);
+            $stmt->bindValue(10, isset($data['active']) ? (int)$data['active'] : 1, SQLITE3_INTEGER);
+            $stmt->execute();
+            $newId = $db->lastInsertRowID();
+            $db->close();
+            return $newId;
+        }
+        $stmt = $db->prepare('UPDATE carousel_slides SET tagline=?, title=?, description=?, image=?, btn_primary_text=?, btn_primary_link=?, btn_secondary_text=?, btn_secondary_link=?, sort_order=?, active=? WHERE id=?');
+        $stmt->bindValue(1, $data['tagline'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(2, $data['title'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(3, $data['description'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(4, $data['image'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(5, $data['btn_primary_text'] ?? 'Explore Now', SQLITE3_TEXT);
+        $stmt->bindValue(6, $data['btn_primary_link'] ?? '#plan', SQLITE3_TEXT);
+        $stmt->bindValue(7, $data['btn_secondary_text'] ?? 'Learn More', SQLITE3_TEXT);
+        $stmt->bindValue(8, $data['btn_secondary_link'] ?? '#explore', SQLITE3_TEXT);
+        $stmt->bindValue(9, isset($data['sort_order']) ? (int)$data['sort_order'] : 0, SQLITE3_INTEGER);
+        $stmt->bindValue(10, isset($data['active']) ? (int)$data['active'] : 1, SQLITE3_INTEGER);
+        $stmt->bindValue(11, (int)$id, SQLITE3_INTEGER);
+        $stmt->execute();
+        $affected = $db->changes();
+        $db->close();
+        return $affected > 0;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+function deleteCarouselSlide($id) {
+    ensureCarouselTable();
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return false;
+    try {
+        $db = new SQLite3($dbFile);
+        $stmt = $db->prepare('SELECT image FROM carousel_slides WHERE id = ?');
+        $stmt->bindValue(1, (int)$id, SQLITE3_INTEGER);
+        $result = $stmt->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        if ($row && !empty($row['image']) && strpos($row['image'], 'images/carousel/') !== false) {
+            deleteCarouselImage($row['image']);
+        }
+        $stmt = $db->prepare('DELETE FROM carousel_slides WHERE id = ?');
+        $stmt->bindValue(1, (int)$id, SQLITE3_INTEGER);
+        $stmt->execute();
+        $db->close();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
+function toggleCarouselSlideActive($id) {
+    ensureCarouselTable();
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return false;
+    try {
+        $db = new SQLite3($dbFile);
+        $stmt = $db->prepare('UPDATE carousel_slides SET active = NOT COALESCE(active, 0) WHERE id = ?');
+        $stmt->bindValue(1, (int)$id, SQLITE3_INTEGER);
+        $stmt->execute();
+        $db->close();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
 }
 
 function logout($redirect = true) {

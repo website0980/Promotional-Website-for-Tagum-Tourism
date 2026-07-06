@@ -3,6 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require_once 'config.php';
+require_once dirname(__DIR__) . '/includes/events_helpers.php';
 requireAuth();
 
 $dbFile = __DIR__ . '/../database.db';
@@ -28,6 +29,7 @@ $errors = [];
 
     $site = [
     'name' => '',
+    'event_date' => '',
     'location' => '',
     'latitude' => null,
     'longitude' => null,
@@ -65,6 +67,7 @@ if ($siteIndex !== null) {
     }
 
     $site['name'] = trim($_POST['name'] ?? '');
+    $site['event_date'] = trim($_POST['event_date'] ?? '');
     $site['location'] = trim($_POST['location'] ?? '');
 $site['latitude'] = $_POST['latitude'] ?? '';
     $site['longitude'] = $_POST['longitude'] ?? '';
@@ -73,7 +76,10 @@ $site['latitude'] = $_POST['latitude'] ?? '';
 $site['image'] = $_POST['image'] ?? $site['image'] ?? '';
 
     if (empty($site['name'])) {
-        $errors[] = "Site name is required";
+        $errors[] = "Event name is required";
+    }
+    if (empty($site['event_date'])) {
+        $errors[] = "Event date is required (used to group events by month on the website)";
     }
 
     if (empty($errors)) {
@@ -96,11 +102,13 @@ $site['image'] = $_POST['image'] ?? $site['image'] ?? '';
         if (empty($errors)) {
 
             $db = connectDB($dbFile);
+            ensureEventDateColumn($db);
 
             if ($isEdit) {
             $stmt = $db->prepare("
                     UPDATE events SET
                         name = :name,
+                        event_date = :event_date,
                         location = :location,
                         latitude = :latitude,
                         longitude = :longitude,
@@ -113,12 +121,13 @@ $site['image'] = $_POST['image'] ?? $site['image'] ?? '';
 
             } else {
                     $stmt = $db->prepare("
-                    INSERT INTO events (name, location, latitude, longitude, history, highlights, image)
-                    VALUES (:name, :location, :latitude, :longitude, :history, :highlights, :image)
+                    INSERT INTO events (name, event_date, location, latitude, longitude, history, highlights, image)
+                    VALUES (:name, :event_date, :location, :latitude, :longitude, :history, :highlights, :image)
                 ");
             }
 
 $stmt->bindValue(':name', $site['name'], SQLITE3_TEXT);
+            $stmt->bindValue(':event_date', $site['event_date'], SQLITE3_TEXT);
             $stmt->bindValue(':location', $site['location'], SQLITE3_TEXT);
             $stmt->bindValue(':latitude', $site['latitude'], SQLITE3_FLOAT);
             $stmt->bindValue(':longitude', $site['longitude'], SQLITE3_FLOAT);
@@ -182,6 +191,12 @@ $stmt->execute();
 <div class="form-group">
 <label>Event Name *</label>
 <input type="text" name="name" value="<?= htmlspecialchars($site['name']) ?>" required class="form-control">
+</div>
+
+<div class="form-group">
+<label>Event Date *</label>
+<input type="date" name="event_date" value="<?= htmlspecialchars($site['event_date'] ?? '') ?>" required class="form-control">
+<small>Events are grouped by month on the Explore page based on this date.</small>
 </div>
 
     <div class="form-group">

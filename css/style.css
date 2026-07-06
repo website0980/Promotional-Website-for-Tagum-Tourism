@@ -994,8 +994,10 @@ html {
     }
 
     .carousel-btn {
-        font-size: 1.5rem;
-        padding: 0.5rem;
+        font-size: 1rem;
+        padding: 0.3rem;
+        width: 36px;
+        height: 36px;
     }
 
     .carousel-btn-prev {
