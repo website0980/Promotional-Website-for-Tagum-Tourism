@@ -269,6 +269,64 @@ function loadRestaurants() {
     } catch (Exception $e) { return []; }
 }
 
+// CERTIFICATION APPLICATION FUNCTIONS
+function loadAccommodationApplications() {
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return [];
+    try {
+        $db = new SQLite3($dbFile);
+        $query = "SELECT * FROM accommodation_applications ORDER BY created_at DESC";
+        $result = $db->query($query);
+        $applications = [];
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) $applications[] = $row;
+        $db->close();
+        return $applications;
+    } catch (Exception $e) { return []; }
+}
+
+function loadAccommodationApplicationById($id) {
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return null;
+    try {
+        $db = new SQLite3($dbFile);
+        $stmt = $db->prepare('SELECT * FROM accommodation_applications WHERE id = ? LIMIT 1');
+        $stmt->bindValue(1, $id, SQLITE3_INTEGER);
+        $result = $stmt->execute();
+        $row = $result->fetchArray(SQLITE3_ASSOC);
+        $db->close();
+        return $row ?: null;
+    } catch (Exception $e) {
+        return null;
+    }
+}
+
+function updateApplicationStatus($id, $status) {
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return false;
+    try {
+        $db = new SQLite3($dbFile);
+        $stmt = $db->prepare('UPDATE accommodation_applications SET status = ? WHERE id = ?');
+        $stmt->bindValue(1, $status, SQLITE3_TEXT);
+        $stmt->bindValue(2, $id, SQLITE3_INTEGER);
+        $stmt->execute();
+        $db->close();
+        return true;
+    } catch (Exception $e) { return false; }
+}
+
+function deleteAccommodationApplication($id) {
+    $dbFile = '../database.db';
+    if (!file_exists($dbFile)) return false;
+    try {
+        $db = new SQLite3($dbFile);
+        $stmt = $db->prepare('DELETE FROM accommodation_applications WHERE id = ?');
+        $stmt->bindValue(1, $id, SQLITE3_INTEGER);
+        $stmt->execute();
+        $db->close();
+        return true;
+    } catch (Exception $e) { return false; }
+}
+
 function validateImageUpload($file) {
     $errors = [];
     if ($file['error'] !== UPLOAD_ERR_OK) $errors[] = 'Upload error';

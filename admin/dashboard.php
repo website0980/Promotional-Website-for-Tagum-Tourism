@@ -10,6 +10,7 @@ $festivals = loadFestivals();
 $hotels = loadHotels();
 $restaurants = loadRestaurants();
 $carouselSlides = loadCarouselSlides();
+$certificationApplications = loadAccommodationApplications();
 
 $message = '';
 $messageType = '';
@@ -60,6 +61,24 @@ case 'toggle-featured':
                 $message = 'Slide visibility updated!';
                 $messageType = 'success';
                 $carouselSlides = loadCarouselSlides();
+            }
+            break;
+
+        case 'update-application-status':
+            if ($id !== null && isset($_POST['status'])) {
+                updateApplicationStatus($id, $_POST['status']);
+                $message = 'Application status updated!';
+                $messageType = 'success';
+                $certificationApplications = loadAccommodationApplications();
+            }
+            break;
+
+        case 'delete-application':
+            if ($id !== null) {
+                deleteAccommodationApplication($id);
+                $message = 'Application deleted.';
+                $messageType = 'success';
+                $certificationApplications = loadAccommodationApplications();
             }
             break;
 
@@ -122,6 +141,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                 <a href="?tab=festivals" class="btn btn-primary tab-btn <?php echo $currentTab === 'festivals' ? 'active' : ''; ?>">Festivals</a>
                 <a href="?tab=hotels" class="btn btn-primary tab-btn <?php echo $currentTab === 'hotels' ? 'active' : ''; ?>">Hotels</a>
                 <a href="?tab=restaurants" class="btn btn-primary tab-btn <?php echo $currentTab === 'restaurants' ? 'active' : ''; ?>">Restaurants</a>
+                <a href="?tab=certification" class="btn btn-primary tab-btn <?php echo $currentTab === 'certification' ? 'active' : ''; ?>">Certification</a>
                 <a href="?tab=carousel" class="btn btn-primary tab-btn <?php echo $currentTab === 'carousel' ? 'active' : ''; ?>">Carousel</a>
                 <div class="admin-search-wrapper">
                     <input type="text" id="adminSearch" class="admin-search-input" placeholder="🔍 Search <?php echo ucfirst($currentTab); ?>..." onkeyup="filterAdminTable()">
@@ -463,6 +483,89 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                         </table>
                     <?php endif; ?>
                 </div>
+            <?php endif; ?>
+
+            <?php if ($currentTab === 'certification'): ?>
+                <div class="dashboard-header">
+                    <h2>Manage Certification Applications</h2>
+                </div>
+
+                <div class="table-responsive">
+                    <?php if (empty($certificationApplications)): ?>
+                        <div class="empty-state">
+                            <p>📋 No certification applications found</p>
+                        </div>
+                    <?php else: ?>
+                        <table class="destinations-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Track</th>
+                                    <th>Establishment</th>
+                                    <th>Owner</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($certificationApplications as $app): ?>
+                                    <tr>
+                                        <td><?php echo (int) $app['id']; ?></td>
+                                        <td>
+                                            <span class="type-badge <?php echo ($app['certification_track'] === 'dot_accredited') ? 'badge-dot' : 'badge-local'; ?>">
+                                                <?php echo ($app['certification_track'] === 'dot_accredited') ? 'DOT Accredited' : 'Locally Certified'; ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo htmlspecialchars($app['establishment_name']); ?></strong>
+                                        </td>
+                                        <td><?php echo htmlspecialchars($app['owner_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($app['category']); ?></td>
+                                        <td><?php echo htmlspecialchars($app['application_date']); ?></td>
+                                        <td>
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="action" value="update-application-status">
+                                                <input type="hidden" name="id" value="<?php echo $app['id']; ?>">
+                                                <select name="status" onchange="this.form.submit()" class="status-select">
+                                                    <option value="pending" <?php echo ($app['status'] === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                                                    <option value="approved" <?php echo ($app['status'] === 'approved') ? 'selected' : ''; ?>>Approved</option>
+                                                    <option value="rejected" <?php echo ($app['status'] === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <a href="view-certification.php?id=<?php echo $app['id']; ?>" class="btn btn-small btn-view">View</a>
+                                            <button type="button" onclick="window.open('view-certification.php?id=<?php echo $app['id']; ?>', '_blank').print()" class="btn btn-small btn-print">Print</button>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this application?');">
+                                                <input type="hidden" name="action" value="delete-application">
+                                                <input type="hidden" name="id" value="<?php echo $app['id']; ?>">
+                                                <button type="submit" class="btn btn-small btn-delete">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+                <style>
+                    .status-select {
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 4px;
+                        border: 1px solid #ddd;
+                        font-size: 0.875rem;
+                    }
+                    .badge-dot {
+                        background-color: #1d5a3d;
+                        color: white;
+                    }
+                    .badge-local {
+                        background-color: #f59e0b;
+                        color: white;
+                    }
+                </style>
             <?php endif; ?>
 
             <?php if ($currentTab === 'carousel'): ?>
