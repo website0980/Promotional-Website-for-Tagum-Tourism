@@ -430,15 +430,19 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                         </td>
                                         <td class="action-buttons">
                                             <a href="add-hotel.php?id=<?php echo $hotel['id']; ?>" class="btn btn-small btn-edit">Edit</a>
-                                        </td>
+                                            <a href="hotel-gallery.php?hotel_id=<?php echo (int)$hotel['id']; ?>" class="btn btn-small btn-primary" style="padding:0.35rem 0.6rem;">Manage Photos</a>
 
+
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
+
                             </tbody>
                         </table>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
+
 
             <?php if ($currentTab === 'restaurants'): ?>
                 <div class="dashboard-header">
@@ -558,13 +562,14 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                         font-size: 0.875rem;
                     }
                     .badge-dot {
-                        background-color: #1d5a3d;
-                        color: white;
+                        background-color: transparent;
+                        color: #1d5a3d;
                     }
                     .badge-local {
-                        background-color: #f59e0b;
-                        color: white;
+                        background-color: transparent;
+                        color: #f59e0b;
                     }
+
                 </style>
             <?php endif; ?>
 

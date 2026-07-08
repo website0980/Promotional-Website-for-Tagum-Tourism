@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS accommodation_applications (
     total_employees INTEGER,
     male_employees INTEGER,
     female_employees INTEGER,
+    year_started TEXT,
     room_types TEXT,
     amenities TEXT,
     previous_certificate TEXT,
