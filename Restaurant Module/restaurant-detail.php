@@ -182,7 +182,13 @@ if ($restaurant) {
                     <div class="restaurant-detail-grid">
                         <div class="restaurant-panel">
                             <h3>Description</h3>
-                            <p class="restaurant-description"><?php echo nl2br(htmlspecialchars($restaurant['description'] ?? 'No description available.')); ?></p>
+                            <?php
+                                $descriptionText = trim($restaurant['description'] ?? '');
+                                if ($descriptionText === '') {
+                                    $descriptionText = 'No description available.';
+                                }
+                            ?>
+                            <p class="restaurant-description"><?php echo nl2br(htmlspecialchars($descriptionText)); ?></p>
                             <?php if (!empty($restaurant['information'])): ?>
                                 <h3 style="margin-top: 1rem;">Information</h3>
                                 <p class="restaurant-description"><?php echo nl2br(htmlspecialchars($restaurant['information'])); ?></p>
@@ -192,7 +198,9 @@ if ($restaurant) {
                         <div class="restaurant-panel">
                             <h3>Restaurant Details</h3>
                             <div class="restaurant-meta-list">
-                                <div><strong>Category:</strong> <?php echo htmlspecialchars($restaurant['category'] ?? 'N/A'); ?></div>
+                                <?php if (!empty($restaurant['category'])): ?>
+                                    <div><strong>Category:</strong> <?php echo htmlspecialchars($restaurant['category']); ?></div>
+                                <?php endif; ?>
                                 <div><strong>Location:</strong> <?php echo htmlspecialchars($restaurant['location'] ?? 'Location not available'); ?></div>
                                 <?php if (!empty($restaurant['contact'])): ?>
                                     <div>
@@ -261,6 +269,18 @@ if ($restaurant) {
             <?php endif; ?>
         </div>
     </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p></p>
+            <div class="footer-links">
+                <a href="#"></a>
+                <a href="#"></a>
+                <a href="#"></a>
+            </div>
+        </div>
+    </footer>
 
     <script src="../assets/js/experience-details.js"></script>
 </body>

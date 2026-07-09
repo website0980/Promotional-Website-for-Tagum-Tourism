@@ -163,15 +163,162 @@ if ($hotel) {
             text-decoration: underline;
         }
 
+        .hotel-photos {
+            margin-top: 1.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .hotel-photos-header {
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .hotel-photos-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #1d5a3d;
+        }
+
+        .hotel-photos-grid {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .hotel-photo-thumb {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #eef2f7;
+            cursor: pointer;
+            background: #f8fafc;
+        }
+
+        .hotel-photo-thumb img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hotel-photos-empty {
+            padding: 1.25rem 1.1rem;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        /* Lightbox */
+        .hotel-photo-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+
+        .hotel-photo-modal.active { display: flex; }
+
+        .hotel-photo-modal-inner {
+            width: min(900px, 100%);
+            background: #0b1220;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .hotel-photo-modal-topbar {
+            padding: 0.75rem 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .hotel-photo-modal-caption {
+            color: rgba(255,255,255,0.92);
+            font-weight: 600;
+            font-size: 0.95rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 75%;
+        }
+
+        .hotel-photo-modal-close {
+            appearance: none;
+            border: 0;
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.05rem;
+        }
+
+        .hotel-photo-modal-body {
+            position: relative;
+        }
+
+        .hotel-photo-modal-body img {
+            width: 100%;
+            height: min(70vh, 640px);
+            object-fit: contain;
+            background: #000;
+            display: block;
+        }
+
+        .hotel-photo-modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 0;
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            line-height: 1;
+            backdrop-filter: blur(6px);
+        }
+
+        .hotel-photo-modal-nav:hover {
+            background: rgba(255,255,255,0.22);
+        }
+
+        .hotel-photo-modal-nav:focus {
+            outline: 2px solid rgba(255,255,255,0.35);
+            outline-offset: 2px;
+        }
+
+        .hotel-photo-modal-nav.prev { left: 14px; }
+        .hotel-photo-modal-nav.next { right: 14px; }
+
         @media (max-width: 900px) {
             .hotel-detail-grid {
                 grid-template-columns: 1fr;
             }
+            .hotel-photo-modal-caption { max-width: 65%; }
+            .hotel-photo-modal-nav.prev { left: 10px; }
+            .hotel-photo-modal-nav.next { right: 10px; }
         }
     </style>
 </head>
 <body>
 <?php include '../navbar.php'; ?>
+
 
     <main class="experience-single">
         <div class="container">
@@ -186,8 +333,15 @@ if ($hotel) {
 
                     <?php if (!empty($hotel['image'])): ?>
                         <div class="experience-image">
-                            <?php $detailImagePath = !empty($hotel['image']) ? basename($hotel['image']) : 'experience-default.jpg'; ?>
-                            <img src="../assets/images/hotels/<?php echo htmlspecialchars($detailImagePath); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>">
+                            <?php
+                                $detailImagePath = $hotel['image'];
+                                if (strpos($detailImagePath, '../../') === 0) {
+                                    $detailImagePath = str_replace('../../', '../', $detailImagePath);
+                                } elseif (strpos($detailImagePath, '../assets/images/hotels/') !== 0 && strpos($detailImagePath, 'assets/images/hotels/') !== false) {
+                                    $detailImagePath = '../' . ltrim($detailImagePath, '/');
+                                }
+                            ?>
+                            <img src="<?php echo htmlspecialchars($detailImagePath); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>">
                         </div>
                     <?php endif; ?>
 
@@ -263,7 +417,92 @@ if ($hotel) {
                         <?php endif; ?>
                     </div>
 
+                    <?php
+                        // Load hotel gallery images from `hotel_gallery` table.
+                        $galleryImages = [];
+                        if ($hotel && !empty($hotel['id'])) {
+                            try {
+                                require_once dirname(__DIR__) . '/database/setup_hotel_gallery.php';
+                                // Ensure table exists (safe idempotent).
+                                ensureHotelGalleryTable();
+
+                                $db = new SQLite3('../database.db');
+                                $stmt = $db->prepare('SELECT image, caption FROM hotel_gallery WHERE hotel_id = ? ORDER BY sort_order ASC, id ASC');
+                                $stmt->bindValue(1, (int)$hotel['id'], SQLITE3_INTEGER);
+                                $result = $stmt->execute();
+                                while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                                    if (!empty($row['image'])) {
+                                        $fileBase = basename((string)$row['image']);
+                                        $caption = trim((string)($row['caption'] ?? ''));
+                                        if ($caption === '') {
+                                            $caption = $fileBase;
+                                        }
+
+                                        $galleryImages[] = [
+                                            'image' => $row['image'],
+                                            'caption' => $caption
+                                        ];
+                                    }
+                                }
+                                $db->close();
+                            } catch (Exception $e) {
+                                // No gallery.
+                            }
+                        }
+                    ?>
+
+                    <section class="hotel-photos" aria-label="Hotel photos">
+                        <div class="hotel-photos-header">
+                            <h2>Hotel Photos</h2>
+                        </div>
+
+                        <?php if (!empty($galleryImages)): ?>
+                            <div class="hotel-photos-grid">
+                                <?php foreach ($galleryImages as $idx => $g): ?>
+                                    <?php
+                                        $imgPath = $g['image'];
+                                        if (strpos($imgPath, '../../') === 0) {
+                                            $imgPath = str_replace('../../', '../', $imgPath);
+                                        }
+                                        // Normalize common stored paths
+                                        if (strpos($imgPath, 'assets/images/hotels/') === 0) {
+                                            $imgPath = '../' . ltrim($imgPath, '/');
+                                        }
+                                    ?>
+                                    <div class="hotel-photo-thumb"
+                                        role="button"
+                                        tabindex="0"
+                                        data-src="<?php echo htmlspecialchars($imgPath); ?>"
+                                        data-caption="<?php echo htmlspecialchars($g['caption'] ?? ''); ?>"
+                                        data-index="<?php echo (int)$idx; ?>"
+                                        aria-label="Open photo">
+                                        <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Hotel photo">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="hotel-photos-empty">
+                                No additional photos available for this hotel yet.
+                            </div>
+                        <?php endif; ?>
+                    </section>
+
+                    <div class="hotel-photo-modal" id="hotelPhotoModal" aria-hidden="true">
+                        <div class="hotel-photo-modal-inner">
+                            <div class="hotel-photo-modal-topbar">
+                                <div class="hotel-photo-modal-caption" id="hotelPhotoCaption"></div>
+                                <button class="hotel-photo-modal-close" type="button" id="hotelPhotoClose" aria-label="Close">✕</button>
+                            </div>
+                            <div class="hotel-photo-modal-body">
+                                <button type="button" class="hotel-photo-modal-nav prev" id="hotelPhotoPrev" aria-label="Previous photo">‹</button>
+                                <img id="hotelPhotoModalImg" src="" alt="Hotel photo preview"/>
+                                <button type="button" class="hotel-photo-modal-nav next" id="hotelPhotoNext" aria-label="Next photo">›</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="experience-actions">
+
                         <a href="hotels.php" class="smooth-scroll btn btn-secondary">← Back to Hotels</a>
                     </div>
                 </article>
@@ -277,6 +516,113 @@ if ($hotel) {
         </div>
     </main>
 
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p></p>
+            <div class="footer-links">
+                <a href="#"></a>
+                <a href="#"></a>
+                <a href="#"></a>
+            </div>
+        </div>
+    </footer>
+
     <script src="../assets/js/experience-details.js"></script>
+
+    <script>
+        (function () {
+            const modal = document.getElementById('hotelPhotoModal');
+            const modalImg = document.getElementById('hotelPhotoModalImg');
+            const modalCaption = document.getElementById('hotelPhotoCaption');
+            const closeBtn = document.getElementById('hotelPhotoClose');
+            const prevBtn = document.getElementById('hotelPhotoPrev');
+            const nextBtn = document.getElementById('hotelPhotoNext');
+
+            if (!modal || !modalImg || !modalCaption || !closeBtn || !prevBtn || !nextBtn) return;
+
+            let currentIndex = -1;
+            let gallery = [];
+
+            function openFromThumb(thumb) {
+                const src = thumb.getAttribute('data-src');
+                const cap = thumb.getAttribute('data-caption') || '';
+
+                if (!src) return;
+
+                currentIndex = parseInt(thumb.getAttribute('data-index') || '-1', 10);
+                modalImg.src = src;
+                modalCaption.textContent = cap;
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+
+                // Keep gallery array synced if needed
+                if (!Array.isArray(gallery) || gallery.length === 0) {
+                    gallery = Array.from(document.querySelectorAll('.hotel-photo-thumb')).map(t => ({
+                        src: t.getAttribute('data-src') || '',
+                        caption: t.getAttribute('data-caption') || ''
+                    }));
+                }
+            }
+
+            function showAtIndex(index) {
+                if (!gallery || gallery.length === 0) return;
+                if (index < 0 || index >= gallery.length) {
+                    index = (index + gallery.length) % gallery.length; // wrap
+                }
+
+                const item = gallery[index];
+                if (!item || !item.src) return;
+
+                currentIndex = index;
+                modalImg.src = item.src;
+                modalCaption.textContent = item.caption || '';
+            }
+
+            function nextPhoto() {
+                if (!gallery || gallery.length === 0) return;
+                showAtIndex(currentIndex + 1);
+            }
+
+            function prevPhoto() {
+                if (!gallery || gallery.length === 0) return;
+                showAtIndex(currentIndex - 1);
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                modalImg.src = '';
+            }
+
+            prevBtn.addEventListener('click', prevPhoto);
+            nextBtn.addEventListener('click', nextPhoto);
+
+            document.querySelectorAll('.hotel-photo-thumb').forEach(thumb => {
+                thumb.addEventListener('click', function () {
+                    openFromThumb(this);
+                });
+
+                thumb.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openFromThumb(this);
+                    }
+                });
+            });
+
+            closeBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeModal();
+                if (!modal.classList.contains('active')) return;
+                if (e.key === 'ArrowRight') nextPhoto();
+                if (e.key === 'ArrowLeft') prevPhoto();
+            });
+        })();
+    </script>
 </body>
 </html>
+

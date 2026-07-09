@@ -154,21 +154,7 @@ if ($event) {
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <img src="../assets/images/CityofTagum.png" alt="Tagum City" class="logo-img">
-                <span class="logo-text">Tagum City</span>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="../index.php#home" class="nav-link">Home</a></li>
-                <li><a href="../index.php#explore" class="nav-link">Explore</a></li>
-                <li><a href="../index.php#experience" class="nav-link">Experience</a></li>
-                <li><a href="../index.php#plan" class="nav-link">Plan</a></li>
-                <li><a href="../index.php#contact" class="nav-link">Contact Us</a></li>
-            </ul>
-        </div>
-    </nav>
+<?php include '../navbar.php'; ?>
 
     <main class="experience-single">
         <div class="container">

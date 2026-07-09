@@ -18,9 +18,8 @@
         $sortByDistance = $userLat !== null && $userLng !== null;
         ?>
 
-        <div class="controls">
-            <button id="get-home" class="btn-sort location-btn">🏠 Home</button>
-            <button id="get-location" class="btn-sort location-btn">📍 Scan</button>
+        <div class="controls" aria-label="Location controls">
+            <button id="get-location" class="btn-sort location-btn">📍 My Location</button>
         </div>
 
         <h2>Restaurants<?php echo $sortByDistance ? ' (Sorted by Distance)' : ''; ?></h2>
@@ -72,7 +71,7 @@
                     <img src="../assets/images/experience-default.jpg" alt="<?php echo htmlspecialchars($restaurant['category'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
                 <?php endif; ?>
                 <h3><?php echo htmlspecialchars($restaurant['name'] ?? '', ENT_QUOTES, 'UTF-8'); ?></h3>
-                <p><?php echo htmlspecialchars(substr($restaurant['description'] ?? '', 0, 100)); ?>...</p>
+                <p><?php echo htmlspecialchars(substr($restaurant['description'] ?? '', 0, 100)); ?></p>
                 <span class="experience-cta distance"><?php echo number_format($restaurant['distance'], 1); ?> km away</span>
             </a>
             <?php endforeach; ?>
@@ -87,9 +86,10 @@
     </section>
 
     <script>
-        document.getElementById('get-home').onclick = function() {
-            window.location.href = '../index.php';
-        };
+        // get-home button hidden
+        // document.getElementById('get-home').onclick = function() {
+        //     window.location.href = '../index.php';
+        // };
 
         document.getElementById('get-location').onclick = function() {
             const btn = this;
@@ -116,7 +116,7 @@
             );
             
             function resetBtn() {
-                btn.textContent = '📍 Use My Location';
+                btn.textContent = '📍 My Location';
                 btn.classList.remove('loading');
             }
         };

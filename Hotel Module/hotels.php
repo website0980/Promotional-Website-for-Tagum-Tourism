@@ -1,4 +1,12 @@
-<?php $tab = $_GET['tab'] ?? 'dot'; ?>
+<?php
+// Persist DOT vs Local tab across navigation using session.
+// This is more reliable than relying only on ?tab=... which can be lost.
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$tab = $_GET['tab'] ?? ($_SESSION['last_hotel_tab'] ?? 'dot');
+$_SESSION['last_hotel_tab'] = $tab;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,19 +16,29 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/explore-full-page.css">
     <link rel="stylesheet" href="../css/hotels.css">
+    <link rel="stylesheet" href="../css/accommodation-form.css">
 </head>
 <body>
 <?php include '../navbar.php'; ?>
 
     <section class="experiences">
+        <?php
+        require_once dirname(__DIR__) . '/includes/module_link_banner.php';
+        if ($tab === 'dot') {
+            renderModuleLinkBanner('accommodation_certification', 'from_hotel_module', 'hotels_dot');
+        }
+        if ($tab === 'local') {
+            renderModuleLinkBanner('accommodation_certification', 'from_hotel_module', 'hotels_local');
+        }
+        ?>
+
         <div class="tab-container" style="text-align: center; margin-bottom: 1rem;">
             <a href="?tab=dot" class="btn btn-primary tab-btn <?php echo ($tab === 'dot') ? 'active' : ''; ?>">DOT Accredited</a>
             <a href="?tab=local" class="btn btn-primary tab-btn <?php echo ($tab === 'local') ? 'active' : ''; ?>">Locally Certified</a>
         </div>
 
-        <div class="controls">
-            <button id="get-home" class="btn-sort home-btn">🏠Home</button>
-            <button id="get-location" class="btn-sort location-btn">📍Scan</button>
+        <div class="controls" aria-label="Location controls">
+            <button id="get-location" class="btn-sort location-btn">📍 My Location</button>
         </div>
 
         <?php
@@ -105,9 +123,9 @@
             });
         });
 
-        document.getElementById('get-home').onclick = function () {
-            window.location.href = '../index.php';
-        };
+        // document.getElementById('get-home').onclick = function () {
+        //     window.location.href = '../index.php';
+        // };
 
         document.getElementById('get-location').onclick = function () {
             const btn = this;
