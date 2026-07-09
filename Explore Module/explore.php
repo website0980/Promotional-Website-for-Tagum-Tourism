@@ -97,40 +97,199 @@ $requestedSection = isset($_GET['section']) && in_array($_GET['section'], ['even
                     }
 
                     $festivals = sortFestivalsByRelatedEvents($festivals, $events);
+
+                    // ---- Group/sort festivals by “kind” (keyword-based, since DB currently has no explicit type/category column) ----
+                    // Purpose: user can immediately see WHAT kind of festival it is (music, food, community, etc.).
+                    $festivalTypeMap = [
+                        'Music & Singing' => ['music', 'hymig', 'handog', 'sing', 'singing', 'singer', 'song', 'opm', 'band', 'musik', 'musical', 'harmony', 'chant'],
+                        'Community / Barangay' => ['barangay', 'community', 'brgy', 'local residents', 'residents', 'neighborhood', 'barangay-based', 'barangay-based'],
+                        'Food & Culture' => ['food', 'sinigang', 'kadayawan', 'culture', 'cultural', 'tradition', 'heritage', 'dance', 'cuisine'],
+                        'Sports & Recreation' => ['sports', 'recreation', 'run', 'marathon', 'athlete', 'fitness', 'game', 'tournament'],
+                        'Arts & Dance' => ['dance', 'art', 'arts', 'drama', 'theater', 'performance'],
+                    ];
+
+                    $normalizeFestivalText = function ($text) {
+                        $text = strtolower(trim((string)$text));
+                        $text = preg_replace('/[^a-z0-9\s]/', ' ', $text);
+                        $text = preg_replace('/\s+/', ' ', $text);
+                        return trim($text);
+                    };
+
+                    $getFestivalType = function (array $festival) use ($festivalTypeMap, $normalizeFestivalText) {
+                        $haystack = $festival['name'] . ' ' . ($festival['description'] ?? '');
+                        $haystack = $normalizeFestivalText($haystack);
+
+                        foreach ($festivalTypeMap as $type => $keywords) {
+                            foreach ($keywords as $kw) {
+                                if ($kw !== '' && strpos($haystack, strtolower($kw)) !== false) {
+                                    return $type;
+                                }
+                            }
+                        }
+
+                        return 'Other Festivals';
+                    };
+
+                    $groupedFestivals = [];
+                    foreach ($festivals as $festival) {
+                        $type = $getFestivalType($festival);
+                        if (!isset($groupedFestivals[$type])) {
+                            $groupedFestivals[$type] = [];
+                        }
+                        $groupedFestivals[$type][] = $festival;
+                    }
+
+                    // Sort festivals within each type: upcoming first (if date exists), then earliest date, then name.
+                    foreach ($groupedFestivals as $type => &$items) {
+                        usort($items, function ($a, $b) {
+                            $dateA = !empty($a['date']) ? strtotime($a['date']) : null;
+                            $dateB = !empty($b['date']) ? strtotime($b['date']) : null;
+                            $tsNow = strtotime(date('Y-m-d'));
+
+                            $isFutureA = $dateA !== null && $dateA >= $tsNow;
+                            $isFutureB = $dateB !== null && $dateB >= $tsNow;
+
+                            if ($isFutureA !== $isFutureB) {
+                                return ($isFutureA ? -1 : 1);
+                            }
+                            if ($dateA !== null && $dateB !== null && $dateA !== $dateB) {
+                                return $dateA <=> $dateB;
+                            }
+                            return strcmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
+                        });
+                        $items = $items;
+                    }
+                    unset($items);
+
+                    // Keep a consistent type order, but only show types that have festivals.
+                    $typeDisplayOrder = array_keys($festivalTypeMap);
+                    $typeDisplayOrder[] = 'Other Festivals';
+                    $orderedGrouped = [];
+                    foreach ($typeDisplayOrder as $type) {
+                        if (!empty($groupedFestivals[$type])) {
+                            $orderedGrouped[$type] = $groupedFestivals[$type];
+                        }
+                    }
+                    // Append any unknown types
+                    foreach ($groupedFestivals as $type => $items) {
+                        if (!isset($orderedGrouped[$type])) {
+                            $orderedGrouped[$type] = $items;
+                        }
+                    }
                     ?>
-                    
+
+                    <style>
+                        .festival-kind-block{margin-top:2rem;}
+                        .festival-kind-header{
+                            display:flex;align-items:center;gap:.75rem;
+                            margin:1.75rem 0 1rem;
+                            color:#1d5a3d;
+                        }
+                        .festival-kind-header .pill{
+                            background:#e8f5ee;
+                            color:#1d5a3d;
+                            padding:.35rem .8rem;
+                            border-radius:999px;
+                            font-weight:700;
+                            font-size:.95rem;
+                        }
+                        .festival-kind-header h3{margin:0;font-size:1.35rem;}
+                    </style>
+
                     <?php if (!empty($festivals)): ?>
-                    <div class="cuisine-grid">
-                        <?php foreach ($festivals as $index => $festival): ?>
-                            <div class="cuisine-category">
-                                <?php if (!empty($festival['image'])): ?>
-                                    <?php 
-                                    $imagePath = $festival['image'];
-                                    // Fix image path if it has ../../ prefix
-                                    if (strpos($imagePath, '../../assets/') === 0) {
-                                        $imagePath = str_replace('../../assets/', '../assets/', $imagePath);
-                                    }
-                                    ?>
-                                    <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>" class="category-image" onerror="this.style.display='none'">
-                                <?php endif; ?>
-                                <h3><?php echo htmlspecialchars($festival['name']); ?></h3>
-                                <p><?php echo htmlspecialchars($festival['description']); ?></p>
-                                <?php if (!empty($festival['date'])): ?>
-                                    <p class="item-count">📅 <?php echo htmlspecialchars($festival['date']); ?></p>
-                                <?php endif; ?>
-<a href="festival-detail.php?id=<?php echo $festival['id']; ?>" class="read-more-btn btn btn-primary">Read More</a>
+                        <?php
+                        // Build a month-like grouping for festivals so the UI matches Events layout.
+                        // We use festival['date'] when available, otherwise bucket as “undated”.
+                        $festivalsByMonth = [];
+                        foreach ($festivals as $festival) {
+                            $dateRaw = trim((string)($festival['date'] ?? ''));
+                            if ($dateRaw === '') {
+                                $monthKey = 'undated';
+                            } else {
+                                $ts = strtotime($dateRaw);
+                                $monthKey = $ts !== false ? date('Y-m', $ts) : 'undated';
+                            }
 
-                            </div>
-                        <?php endforeach; ?>
+                            if (!isset($festivalsByMonth[$monthKey])) {
+                                $label = $monthKey === 'undated'
+                                    ? 'Date To Be Announced'
+                                    : date('F Y', strtotime($monthKey . '-01'));
+                                $festivalsByMonth[$monthKey] = [
+                                    'label' => $label,
+                                    'events' => [],
+                                    'sort' => $monthKey === 'undated' ? '9999-12' : $monthKey,
+                                ];
+                            }
+                            $festivalsByMonth[$monthKey]['events'][] = $festival;
+                        }
+                        uasort($festivalsByMonth, function($a,$b){ return ($a['sort'] ?? '') <=> ($b['sort'] ?? ''); });
+                        $currentMonth = date('Y-m');
+                        $openMonthKey = isset($festivalsByMonth[$currentMonth]) ? $currentMonth : array_key_first($festivalsByMonth);
+                        ?>
 
-                    </div>
+                        <div class="events-by-month">
+                            <?php foreach ($festivalsByMonth as $monthKey => $monthData): ?>
+                                <?php
+                                $isOpen = ($monthKey === $openMonthKey);
+                                $eventNames = array_map(function($f){ return $f['name'] ?? 'Untitled Festival'; }, $monthData['events']);
+                                $preview = implode(', ', $eventNames);
+                                $count = count($monthData['events']);
+                                ?>
+                                <div class="month-group<?php echo $isOpen ? ' is-open' : ''; ?>">
+                                    <button
+                                        type="button"
+                                        class="month-header"
+                                        aria-expanded="<?php echo $isOpen ? 'true' : 'false'; ?>"
+                                        data-month="<?php echo htmlspecialchars($monthKey); ?>"
+                                    >
+                                        <div class="month-header-top">
+                                            <span class="month-label"><?php echo htmlspecialchars($monthData['label']); ?></span>
+                                            <span class="month-count"><?php echo $count; ?> festival<?php echo $count === 1 ? '' : 's'; ?></span>
+                                            <span class="month-chevron" aria-hidden="true">▼</span>
+                                        </div>
+                                        <p class="month-preview"><?php echo htmlspecialchars($preview); ?></p>
+                                    </button>
+
+                                    <div class="month-events"<?php echo $isOpen ? '' : ' hidden'; ?> >
+                                        <div class="cuisine-grid events-month-grid">
+                                            <?php foreach ($monthData['events'] as $festival): ?>
+                                                <?php
+                                                $imagePath = $festival['image'] ?? '';
+                                                if (strpos($imagePath, '../../assets/') === 0) {
+                                                    $imagePath = str_replace('../../assets/', '../assets/', $imagePath);
+                                                }
+                                                $dateShow = '';
+                                                if (!empty($festival['date'])) {
+                                                    $ts = strtotime($festival['date']);
+                                                    $dateShow = $ts !== false ? date('F j, Y', $ts) : $festival['date'];
+                                                }
+                                                ?>
+                                                <div class="cuisine-category event-month-card">
+                                                    <?php if (!empty($imagePath)): ?>
+                                                        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>" class="category-image" onerror="this.style.display='none'">
+                                                    <?php endif; ?>
+                                                    <h3><?php echo htmlspecialchars($festival['name']); ?></h3>
+                                                    <?php if ($dateShow !== ''): ?>
+                                                        <p class="item-count event-date-badge">📅 <?php echo htmlspecialchars($dateShow); ?></p>
+                                                    <?php endif; ?>
+                                                    <?php if (!empty($festival['description'])): ?>
+                                                        <p style="color:#6b7280; padding:0 1.25rem 1rem; line-height:1.6;">“<?php echo htmlspecialchars(substr($festival['description'],0,110)); ?>...”</p>
+                                                    <?php endif; ?>
+                                                    <a href="festival-detail.php?id=<?php echo (int)$festival['id']; ?>" class="read-more-btn btn btn-primary">Read More</a>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     <?php else: ?>
-                    <h3>Annual Festivals:</h3>
-                    <ul>
-                        <li><strong>Kadayawan Festival</strong> - Week-long celebration of thanksgiving</li>
-                        <li><strong>Araw ng Tagum</strong> - Foundation day festivities</li>
-                        <li><strong>Sinigang Festival</strong> - Food and cultural festival</li>
-                    </ul>
+                        <h3>Annual Festivals:</h3>
+                        <ul>
+                            <li><strong>Kadayawan Festival</strong> - Week-long celebration of thanksgiving</li>
+                            <li><strong>Araw ng Tagum</strong> - Foundation day festivities</li>
+                            <li><strong>Sinigang Festival</strong> - Food and cultural festival</li>
+                        </ul>
                     <?php endif; ?>
                 </div>
             </div>

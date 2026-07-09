@@ -11,7 +11,6 @@ $jsPath = $isSubdir ? '../js/navbar.js' : 'js/navbar.js';
     <div class="nav-container">
         <div class="logo" style="display: flex; align-items: center; gap: 10px; min-width: 0;">
             <img src="<?php echo $logoPath; ?>" alt="Tagum Tourism Logo" class="logo-img" style="height: 48px; width: 48px; object-fit: contain; order:1;">
-            <img src="<?php echo $isSubdir ? '../images/TextLogo.png' : 'images/TextLogo.png'; ?>" alt="Tagum Tourism Text Logo" class="logo-text-img" style="height: 44px; object-fit: contain; display: block; order:2;">
             <button class="hamburger" aria-label="Toggle Menu" aria-expanded="false" onclick="toggleMobileMenu(event)" style="order:3; margin-left: 8px;">
                 <span></span>
                 <span></span>

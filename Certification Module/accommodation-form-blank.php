@@ -108,7 +108,7 @@ $today = date('Y-m-d');
                 <h2 class="cert-section-title">5. Category *</h2>
                 <div class="cert-category-grid">
                     <?php
-                    $categories = ['Hotel', 'Resort', 'Apartment Hotel', 'Mabuhay Accommodation'];
+                    $categories = ['Hotel', 'Resort', 'Apartment Hotel', 'Mabuhay Accommodation', 'Others'];
                     foreach ($categories as $cat):
                     ?>
                     <label class="cert-check-label cert-category-option">
@@ -116,6 +116,10 @@ $today = date('Y-m-d');
                         <?php echo htmlspecialchars($cat); ?>
                     </label>
                     <?php endforeach; ?>
+                </div>
+                <div class="cert-field" style="margin-top: 10px;">
+                    <label for="other_category_text">If Others, please specify:</label>
+                    <input type="text" id="other_category_text" name="other_category_text" class="cert-input" placeholder="Specify other category">
                 </div>
             </section>
 
@@ -135,7 +139,20 @@ $today = date('Y-m-d');
                         <input type="number" id="total_employees" name="total_employees" min="0" class="cert-input">
                     </div>
                 </div>
-                <div class="cert-form-grid cert-form-grid-2 cert-employee-split">
+                <div class="cert-form-grid cert-form-grid-3">
+                    <div class="cert-field">
+                        <label for="male_employees">Male Employee</label>
+                        <input type="number" id="male_employees" name="male_employees" min="0" class="cert-input">
+                    </div>
+                    <div class="cert-field">
+                        <label for="female_employees">Female Employee</label>
+                        <input type="number" id="female_employees" name="female_employees" min="0" class="cert-input">
+                    </div>
+                    <div class="cert-field">
+                        <label for="year_started">6.4 Year Started/Established</label>
+                        <input type="text" id="year_started" name="year_started" class="cert-input" placeholder="YYYY or year established">
+                    </div>
+                </div>
                     <div class="cert-field">
                         <label for="male_employees">Male Employee</label>
                         <input type="number" id="male_employees" name="male_employees" min="0" class="cert-input">

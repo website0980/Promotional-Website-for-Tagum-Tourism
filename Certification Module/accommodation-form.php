@@ -2,9 +2,29 @@
 require_once __DIR__ . '/process-application.php';
 require_once dirname(__DIR__) . '/includes/module_links.php';
 
-$hotelsBackUrl = '../Hotel Module/hotels.php?tab=local';
-
 $formData = $_POST ?? [];
+
+// Preserve the hotels tab (DOT vs Local) based on the certification track.
+// - When re-rendering after validation errors: $_POST['certification_track'] is available.
+// - When first opening: module_links.php appends track=dot|local; map it here.
+$trackFromPost = $formData['certification_track'] ?? null;
+$trackFromQuery = $_GET['track'] ?? null;
+$track = $trackFromPost ?: $trackFromQuery;
+
+// module_links.php appends track=dot or track=local in the URL.
+// The POST field uses dot_accredited / locally_certified.
+if ($track === 'dot') {
+    $track = 'dot_accredited';
+}
+if ($track === 'local') {
+    $track = 'locally_certified';
+}
+
+$hotelsBackUrl = ($track === 'dot_accredited')
+    ? '../Hotel Module/hotels.php?tab=dot'
+    : '../Hotel Module/hotels.php?tab=local';
+
+
 $today = date('Y-m-d');
 ?>
 <!DOCTYPE html>
@@ -50,13 +70,18 @@ $today = date('Y-m-d');
                 <div class="cert-office-banner">City Tourism and Cultural Office</div>
                 <h1 class="cert-form-title">Local Certification Application Form</h1>
                 <p class="cert-form-subtitle">Tourism Accommodation Establishment</p>
-                <p class="cert-form-note">Please supply all information required. Do not abbreviate. Place check marks in appropriate boxes and indicate &ldquo;N/A&rdquo; if not applicable.</p>
+                <p class="cert-form-note">Please supply all information required. Do not abbreviate. Place check marks in appropriate circle and indicate &ldquo;N/A&rdquo; if not applicable.</p>
             </header>
 
             <section class="cert-form-section">
                 <div class="cert-form-row cert-form-row-split">
+                    <div class="cert-field">
+                        <label for="application_date">Date of Application</label>
+                        <input type="date" id="application_date" name="application_date" required class="cert-input"
+                               value="<?php echo htmlspecialchars($formData['application_date'] ?? ''); ?>">
+                    </div>
                     <fieldset class="cert-field cert-radio-group">
-                        <legend>Application Type *</legend>
+                        <legend>Application Type </legend>
                         <label class="cert-check-label">
                             <input type="radio" name="application_type" value="new" required
                                 <?php echo (($formData['application_type'] ?? '') === 'new') ? 'checked' : ''; ?>>
@@ -73,7 +98,7 @@ $today = date('Y-m-d');
 
             <section class="cert-form-section">
                 <fieldset class="cert-field cert-radio-group">
-                    <legend>Certification Track *</legend>
+                    <legend>Certification Track </legend>
                     <label class="cert-check-label">
                         <input type="radio" name="certification_track" value="dot_accredited" required
                             <?php echo (($formData['certification_track'] ?? '') === 'dot_accredited') ? 'checked' : ''; ?>>
@@ -88,21 +113,21 @@ $today = date('Y-m-d');
             </section>
 
             <section class="cert-form-section">
-                <h2 class="cert-section-title">1. Name of Establishment *</h2>
+                <h2 class="cert-section-title">1. Name of Establishment </h2>
                 <input type="text" name="establishment_name" required class="cert-input"
                        value="<?php echo htmlspecialchars($formData['establishment_name'] ?? ''); ?>"
                        placeholder="Full legal name of establishment">
             </section>
 
             <section class="cert-form-section">
-                <h2 class="cert-section-title">2. Name of Owner *</h2>
+                <h2 class="cert-section-title">2. Name of Owner </h2>
                 <input type="text" name="owner_name" required class="cert-input"
                        value="<?php echo htmlspecialchars($formData['owner_name'] ?? ''); ?>"
                        placeholder="Full name of owner">
             </section>
 
             <section class="cert-form-section">
-                <h2 class="cert-section-title">3. Address *</h2>
+                <h2 class="cert-section-title">3. Address </h2>
                 <input type="text" name="address" required class="cert-input"
                        value="<?php echo htmlspecialchars($formData['address'] ?? ''); ?>"
                        placeholder="Complete business address">
@@ -135,10 +160,10 @@ $today = date('Y-m-d');
             </section>
 
             <section class="cert-form-section">
-                <h2 class="cert-section-title">5. Category *</h2>
+                <h2 class="cert-section-title">5. Category </h2>
                 <div class="cert-category-grid">
                     <?php
-                    $categories = ['Hotel', 'Resort', 'Apartment Hotel', 'Mabuhay Accommodation'];
+                    $categories = ['Hotel', 'Resort', 'Apartment Hotel', 'Mabuhay Accommodation', 'Others'];
                     $selectedCategory = $formData['category'] ?? '';
                     foreach ($categories as $cat):
                     ?>
@@ -148,6 +173,12 @@ $today = date('Y-m-d');
                         <?php echo htmlspecialchars($cat); ?>
                     </label>
                     <?php endforeach; ?>
+                </div>
+                <div class="cert-field" id="otherCategoryField" style="display: <?php echo ($selectedCategory === 'Others') ? 'block' : 'none'; ?>; margin-top: 8px;">
+                    <label for="other_category_text">Please specify:</label>
+                    <input type="text" id="other_category_text" name="other_category_text" class="cert-input"
+                           value="<?php echo htmlspecialchars($formData['other_category_text'] ?? ''); ?>"
+                           placeholder="Specify other category">
                 </div>
             </section>
 
@@ -168,6 +199,12 @@ $today = date('Y-m-d');
                         <label for="total_employees">6.3 Total No. of Employees</label>
                         <input type="number" id="total_employees" name="total_employees" min="0" class="cert-input"
                                value="<?php echo htmlspecialchars($formData['total_employees'] ?? ''); ?>">
+                    </div>
+                    <div class="cert-field">
+                        <label for="year_started">6.4 Year Started/Established</label>
+                        <input type="text" id="year_started" name="year_started" class="cert-input"
+                               value="<?php echo htmlspecialchars($formData['year_started'] ?? ''); ?>"
+                               placeholder="Year Started or Year Established">
                     </div>
                 </div>
                 <div class="cert-form-grid cert-form-grid-2 cert-employee-split">
@@ -191,7 +228,6 @@ $today = date('Y-m-d');
                                 <th>Type of Rooms (e.g., Deluxe, Standard)</th>
                                 <th>Rates</th>
                                 <th>Number</th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -203,7 +239,6 @@ $today = date('Y-m-d');
                                     value="<?php echo htmlspecialchars($formData['room_type_rate'][$i] ?? ''); ?>"></td>
                                 <td><input type="number" name="room_type_number[]" min="0" class="cert-input cert-table-input"
                                     value="<?php echo htmlspecialchars($formData['room_type_number'][$i] ?? ''); ?>"></td>
-                                <td></td>
                             </tr>
                             <?php endfor; ?>
                         </tbody>
@@ -217,7 +252,6 @@ $today = date('Y-m-d');
                         <thead>
                             <tr>
                                 <th>Amenity</th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -226,7 +260,6 @@ $today = date('Y-m-d');
                                 <td><input type="text" name="amenity_name[]" class="cert-input cert-table-input"
                                     value="<?php echo htmlspecialchars($formData['amenity_name'][$i] ?? ''); ?>"
                                     placeholder="e.g., Swimming Pool"></td>
-                                <td></td>
                             </tr>
                             <?php endfor; ?>
                         </tbody>
@@ -252,19 +285,9 @@ $today = date('Y-m-d');
                             <li>Fire Safety Inspection Certificate</li>
                             <li>Other requirements prescribed by the Business License Office (e.g., DTI/SEC registration, Articles of Incorporation/Cooperation)</li>
                         </ul>
-                    </li>
-                </ol>
-                <p class="cert-renewal-note"><strong>For Renewal Application:</strong> Previous Certificate/Sticker and Application Date.</p>
 
-                <div class="cert-renewal-fields" id="renewalFields">
-                    <div class="cert-form-grid cert-form-grid-1">
-                        <div class="cert-field">
-                            <label for="previous_certificate">Previous Certificate / Sticker No.</label>
-                            <input type="text" id="previous_certificate" name="previous_certificate" class="cert-input"
-                                   value="<?php echo htmlspecialchars($formData['previous_certificate'] ?? ''); ?>">
-                        </div>
-                    </div>
-                </div>
+                </ol>
+<p class="cert-renewal-note"><strong>For Renewal Application:</strong> Application Date.</p>
             </section>
 
             <div class="cert-form-actions">
@@ -275,6 +298,26 @@ $today = date('Y-m-d');
         </form>
     </div>
 </main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var categoryRadios = document.querySelectorAll('input[name="category"]');
+        var otherField = document.getElementById('otherCategoryField');
+        function toggleOtherField() {
+            var selectedValue = document.querySelector('input[name="category"]:checked');
+            if (selectedValue && selectedValue.value === 'Others') {
+                otherField.style.display = 'block';
+                document.getElementById('other_category_text').required = true;
+            } else {
+                otherField.style.display = 'none';
+                document.getElementById('other_category_text').required = false;
+            }
+        }
+        categoryRadios.forEach(function(radio) {
+            radio.addEventListener('change', toggleOtherField);
+        });
+        toggleOtherField();
+    });
+</script>
 
 <script src="../js/accommodation-form.js"></script>
 </body>

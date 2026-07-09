@@ -62,9 +62,8 @@ function downloadForm() {
 }
 
 function downloadBlankForm() {
-    // Open the compact form in a new window
     const printWindow = window.open('accommodation-form-compact.php', '_blank');
-    
+
     if (printWindow) {
         printWindow.onload = function() {
             setTimeout(() => {

@@ -14,7 +14,12 @@ if ($id > 0 && file_exists(dirname(__DIR__) . '/database.db')) {
     $db->close();
 }
 
-$hotelsUrl = '../Hotel Module/hotels.php?tab=local';
+$track = $_GET['track'] ?? null;
+if ($track === 'dot') {
+    $hotelsUrl = '../Hotel Module/hotels.php?tab=dot';
+} else {
+    $hotelsUrl = '../Hotel Module/hotels.php?tab=local';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

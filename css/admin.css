@@ -316,8 +316,36 @@ body {
     color: var(--white);
 }
 
-.btn-edit:hover {
+ .btn-edit:hover {
     background-color: var(--light-gray);
+}
+
+/* Certification / action buttons */
+.btn-view {
+    background-color: var(--dark-green);
+    color: var(--white);
+}
+
+.btn-view:hover {
+    background-color: var(--light-green);
+}
+
+.btn-print {
+    background-color: var(--info, #0284c7);
+    color: var(--white);
+}
+
+.btn-print:hover {
+    background-color: #03618f;
+}
+
+.btn-delete {
+    background-color: var(--dark-green);
+    color: var(--white);
+}
+
+.btn-delete:hover {
+    background-color: var(--light-green);
 }
 
 .btn-delete {

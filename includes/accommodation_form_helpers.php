@@ -30,6 +30,19 @@ function ensureAccommodationApplicationsTable($db = null) {
         $db->exec('ALTER TABLE accommodation_applications ADD COLUMN certification_track TEXT NOT NULL DEFAULT "locally_certified"');
     }
 
+    // Add year_started column if missing
+    $result = $db->query("PRAGMA table_info(accommodation_applications)");
+    $hasYearStarted = false;
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        if ($row['name'] === 'year_started') {
+            $hasYearStarted = true;
+            break;
+        }
+    }
+    if (!$hasYearStarted) {
+        $db->exec('ALTER TABLE accommodation_applications ADD COLUMN year_started TEXT');
+    }
+
     if ($closeDb) {
         $db->close();
     }
@@ -50,9 +63,9 @@ function saveAccommodationApplication(array $data) {
             INSERT INTO accommodation_applications (
                 certification_track, application_type, application_date, establishment_name, owner_name, address,
                 telephone, mobile_number, email, facebook, category,
-                total_rooms, total_capacity, total_employees, male_employees, female_employees,
+                total_rooms, total_capacity, total_employees, male_employees, female_employees, year_started,
                 room_types, amenities, previous_certificate, renewal_date, applicant_signature
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
 
         $stmt->bindValue(1, $data['certification_track'] ?? 'locally_certified', SQLITE3_TEXT);
@@ -71,11 +84,12 @@ function saveAccommodationApplication(array $data) {
         $stmt->bindValue(14, isset($data['total_employees']) ? (int) $data['total_employees'] : null, SQLITE3_INTEGER);
         $stmt->bindValue(15, isset($data['male_employees']) ? (int) $data['male_employees'] : null, SQLITE3_INTEGER);
         $stmt->bindValue(16, isset($data['female_employees']) ? (int) $data['female_employees'] : null, SQLITE3_INTEGER);
-        $stmt->bindValue(17, json_encode($data['room_types'] ?? []), SQLITE3_TEXT);
-        $stmt->bindValue(18, json_encode($data['amenities'] ?? []), SQLITE3_TEXT);
-        $stmt->bindValue(19, $data['previous_certificate'] ?? '', SQLITE3_TEXT);
-        $stmt->bindValue(20, $data['renewal_date'] ?? '', SQLITE3_TEXT);
-        $stmt->bindValue(21, $data['applicant_signature'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(17, trim($data['year_started'] ?? ''), SQLITE3_TEXT);
+        $stmt->bindValue(18, json_encode($data['room_types'] ?? []), SQLITE3_TEXT);
+        $stmt->bindValue(19, json_encode($data['amenities'] ?? []), SQLITE3_TEXT);
+        $stmt->bindValue(20, $data['previous_certificate'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(21, $data['renewal_date'] ?? '', SQLITE3_TEXT);
+        $stmt->bindValue(22, $data['applicant_signature'] ?? '', SQLITE3_TEXT);
 
         $stmt->execute();
         $id = $db->lastInsertRowID();
@@ -109,6 +123,12 @@ function parseAccommodationFormPost(array $post) {
         }
     }
 
+    $category = trim($post['category'] ?? '');
+    $otherCategoryText = trim($post['other_category_text'] ?? '');
+    if ($category === 'Others') {
+        $category = $otherCategoryText !== '' ? 'Others - ' . $otherCategoryText : 'Others';
+    }
+
     return [
         'certification_track' => trim($post['certification_track'] ?? 'locally_certified'),
         'application_type' => trim($post['application_type'] ?? ''),
@@ -120,7 +140,9 @@ function parseAccommodationFormPost(array $post) {
         'mobile_number' => trim($post['mobile_number'] ?? ''),
         'email' => trim($post['email'] ?? ''),
         'facebook' => trim($post['facebook'] ?? ''),
-        'category' => trim($post['category'] ?? ''),
+        'category' => $category,
+        'other_category_text' => $otherCategoryText,
+        'year_started' => trim($post['year_started'] ?? ''),
         'total_rooms' => $post['total_rooms'] ?? null,
         'total_capacity' => $post['total_capacity'] ?? null,
         'total_employees' => $post['total_employees'] ?? null,
@@ -130,7 +152,6 @@ function parseAccommodationFormPost(array $post) {
         'amenities' => $amenities,
         'previous_certificate' => trim($post['previous_certificate'] ?? ''),
         'renewal_date' => trim($post['renewal_date'] ?? ''),
-        'applicant_signature' => trim($post['applicant_signature'] ?? ''),
     ];
 }
 
@@ -158,12 +179,15 @@ function validateAccommodationApplication(array $data) {
     if (empty($data['category'])) {
         $errors[] = 'Please select an establishment category.';
     }
-    if (empty($data['applicant_signature'])) {
-        $errors[] = 'Applicant signature (full name) is required.';
+    if ((trim($data['category'] ?? '') === 'Others' || stripos(trim($data['category'] ?? ''), 'Others -') === 0) && empty(trim($data['other_category_text'] ?? ''))) {
+        $errors[] = 'Please specify the establishment category when Others is selected.';
     }
-    if (($data['application_type'] ?? '') === 'renewal' && empty($data['previous_certificate'])) {
-        $errors[] = 'Previous certificate/sticker number is required for renewal.';
-    }
+    // Renewal previously required previous certificate/sticker number.
+    // Requirement removed.
+    // if (($data['application_type'] ?? '') === 'renewal' && empty($data['previous_certificate'])) {
+    //     $errors[] = 'Previous certificate/sticker number is required for renewal.';
+    // }
+
 
     return $errors;
 }
