@@ -28,7 +28,7 @@ define('FESTIVALS_FILE', dirname(__DIR__) . '/assets/data/festivals.json');
 define('IMAGES_DIR', dirname(__DIR__) . '/images/destinations/');
 define('IMAGES_URL', '../../images/destinations/');
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-define('MAX_FILE_SIZE', 5 * 1024 * 1024);
+define('MAX_FILE_SIZE', 25 * 1024 * 1024);
 
 define('EXPERIENCES_IMAGES_DIR', dirname(__DIR__) . '/assets/images/experiences/');
 define('EXPERIENCES_IMAGES_URL', '../../assets/images/experiences/');

@@ -43,7 +43,15 @@ function handleUploadForHotel(int $hotelId): void {
 
     $db = new SQLite3($dbFile);
 
+    // Prevent hitting PHP's max_file_uploads with huge multi-upload batches.
+    // Your server warning indicates max allowable uploads exceeded.
+    $maxFilesPerUpload = 5;
     $count = count($_FILES['gallery_files']['name']);
+    if ($count > $maxFilesPerUpload) {
+        $errors[] = 'You selected ' . $count . ' files. Upload is limited to ' . $maxFilesPerUpload . ' images per request.';
+        $count = $maxFilesPerUpload;
+    }
+
     for ($i = 0; $i < $count; $i++) {
         $file = [
             'name' => $_FILES['gallery_files']['name'][$i],
@@ -262,7 +270,7 @@ $gallery = loadGalleryForHotel($hotelId);
                     <div class="form-group">
                         <label>Choose photos (multiple allowed)</label>
                         <input type="file" name="gallery_files[]" accept="image/*" multiple required>
-                        <small style="display:block; margin-top:.25rem; color:#6b7280;">Oversized files are skipped so other images can still upload.</small>
+                        <small style="display:block; margin-top:.25rem; color:#6b7280;">Max 5 images per upload to avoid server “max allowable file uploads exceeded”.</small>
                     </div>
 
 
