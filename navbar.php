@@ -23,6 +23,7 @@ $jsPath = $isSubdir ? '../js/navbar.js' : 'js/navbar.js';
             <li><a href="<?php echo $prefix; ?>#home" class="nav-link">Home</a></li>
             <li><a href="<?php echo $prefix; ?>#explore" class="nav-link">Explore</a></li>
             <li><a href="<?php echo $prefix; ?>#experiences" class="nav-link">Experiences</a></li>
+            <li><a href="<?php echo $prefix; ?>#cultural-heritage" class="nav-link smooth-scroll">Cultural Heritage</a></li>
             <li><a href="<?php echo $prefix; ?>#plan" class="nav-link">Plan</a></li>
             <li><a href="<?php echo $prefix; ?>#hotels-restaurants" class="nav-link hotels-restaurants-link">Hotels & Restaurants</a></li>
             <li><a href="<?php echo $prefix; ?>#contact" class="nav-link">Contact</a></li>

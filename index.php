@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <!-- Hero Carousel Section -->
+    <!-- Hero Accordion Gallery Section -->
     <?php
     $carouselSlides = [];
     $dbFile = 'database.db';
@@ -31,62 +31,66 @@
         }
     }
     ?>
-    <section class="hero-carousel" id="home">
-        <div class="carousel-container">
+    <section class="hero-accordion-gallery" id="home">
+        <div class="accordion-gallery">
             <?php if (!empty($carouselSlides)): ?>
                 <?php foreach ($carouselSlides as $index => $slide): ?>
-                    <div class="carousel-slide<?php echo $index === 0 ? ' active' : ''; ?>" style="background-image: url('<?php echo htmlspecialchars($slide['image']); ?>');">
-                        <div class="slide-overlay"></div>
-                        <div class="slide-content">
+                    <div class="gallery-item<?php echo $index === 0 ? ' is-active' : ''; ?>" data-index="<?php echo $index; ?>">
+                        <img src="<?php echo htmlspecialchars($slide['image']); ?>" alt="<?php echo htmlspecialchars($slide['title']); ?>">
+                        <a href="<?php echo htmlspecialchars($slide['btn_primary_link'] ?? '#plan'); ?>" class="card-overlay"></a>
+                        <div class="card-content">
                             <?php if (!empty($slide['tagline'])): ?>
                                 <p class="slide-tagline"><?php echo htmlspecialchars($slide['tagline']); ?></p>
                             <?php endif; ?>
-                            <h1 class="slide-title"><?php echo nl2br(htmlspecialchars($slide['title'])); ?></h1>
-                            <?php if (!empty($slide['description'])): ?>
-                                <p class="slide-description"><?php echo htmlspecialchars($slide['description']); ?></p>
-                            <?php endif; ?>
-                            <div class="button-group">
-                                <?php if (!empty($slide['btn_primary_text'])): ?>
-                                    <a href="<?php echo htmlspecialchars($slide['btn_primary_link'] ?? '#plan'); ?>" class="btn btn-primary smooth-scroll"><?php echo htmlspecialchars($slide['btn_primary_text']); ?></a>
-                                <?php endif; ?>
-                                <?php if (!empty($slide['btn_secondary_text'])): ?>
-                                    <a href="<?php echo htmlspecialchars($slide['btn_secondary_link'] ?? '#explore'); ?>" class="btn btn-secondary smooth-scroll"><?php echo htmlspecialchars($slide['btn_secondary_text']); ?></a>
-                                <?php endif; ?>
-                            </div>
+                            <h3><?php echo nl2br(htmlspecialchars($slide['title'])); ?></h3>
+                            <p><?php echo htmlspecialchars($slide['description']); ?></p>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-            <!-- Fallback slides when database is empty -->
-            <div class="carousel-slide active" style="background-image: url('images/Background for slide 1.jpg');">
-                <div class="slide-overlay"></div>
-                <div class="slide-content">
-                    <p class="slide-tagline">Tagumeños: Beauty that Shines from Within.</p>
-                    <h1 class="slide-title">Discover<br>Natural Beauty</h1>
-                    <p class="slide-description">
-                        Tagumeños are a reflection of true natural beauty radiating warmth, kindness, and genuine smiles that make everyone feel welcome. 
-                    </p>
-                    <div class="button-group">
-                        <a href="#plan" class="btn btn-primary smooth-scroll">Explore Now</a>
-                        <a href="#explore" class="btn btn-secondary smooth-scroll">Learn More</a>
+                <!-- Fallback slides when database is empty -->
+                <div class="gallery-item is-active" data-index="0">
+                    <img src="images/Background for slide 1.jpg" alt="Natural Beauty">
+                    <a href="#plan" class="card-overlay"></a>
+                    <div class="card-content">
+                        <p class="slide-tagline">Tagumeños: Beauty that Shines from Within.</p>
+                        <h3>Discover Natural Beauty</h3>
+                        <p>Tagumeños are a reflection of true natural beauty radiating warmth, kindness, and genuine smiles.</p>
                     </div>
                 </div>
-            </div>
+                <div class="gallery-item" data-index="1">
+                    <img src="images/Background for slide 2 .jpg" alt="Cultural Heritage">
+                    <a href="#cultural-heritage" class="card-overlay"></a>
+                    <div class="card-content">
+                        <h3>Rich Cultural Heritage</h3>
+                        <p>Experience the vibrant traditions and cultural treasures that make Tagum City unique.</p>
+                    </div>
+                </div>
+                <div class="gallery-item" data-index="2">
+                    <img src="images/Background for slide 3.jpg" alt="Adventure">
+                    <a href="#experiences" class="card-overlay"></a>
+                    <div class="card-content">
+                        <h3>Unforgettable Adventures</h3>
+                        <p>From mountain trekking to river tours, discover thrilling experiences in nature.</p>
+                    </div>
+                </div>
+                <div class="gallery-item" data-index="3">
+                    <img src="images/destinations/dest_1778551486_6a028abed84a2.jpg" alt="Destinations">
+                    <a href="#featured" class="card-overlay"></a>
+                    <div class="card-content">
+                        <h3>Featured Destinations</h3>
+                        <p>Explore our top-picked attractions and hidden gems waiting to be discovered.</p>
+                    </div>
+                </div>
+                <div class="gallery-item" data-index="4">
+                    <img src="images/events/event_1778551039_6a0288ff81b81.jpg" alt="Events">
+                    <a href="#explore" class="card-overlay"></a>
+                    <div class="card-content">
+                        <h3>Vibrant Events</h3>
+                        <p>Join local festivals and celebrations showcasing music, dance, and community spirit.</p>
+                    </div>
+                </div>
             <?php endif; ?>
-
-            <!-- Navigation Arrows -->
-            <button class="carousel-btn carousel-btn-prev" onclick="changeSlide(-1)">❮</button>
-            <button class="carousel-btn carousel-btn-next" onclick="changeSlide(1)">❯</button>
-        </div>
-
-        <!-- Carousel Dots -->
-        <div class="carousel-dots">
-            <?php
-            $dotCount = !empty($carouselSlides) ? count($carouselSlides) : 1;
-            for ($i = 1; $i <= $dotCount; $i++):
-            ?>
-                <span class="dot<?php echo $i === 1 ? ' active' : ''; ?>" onclick="currentSlide(<?php echo $i; ?>)"></span>
-            <?php endfor; ?>
         </div>
     </section>
 
@@ -244,6 +248,50 @@
         </div>
     </section>
 
+    <!-- Cultural Heritage Section -->
+    <section class="cultural-heritage-preview" id="cultural-heritage">
+        <h2>Cultural Heritage</h2>
+        <p class="section-subtitle">Discover the rich cultural heritage and traditions of Tagum City</p>
+        <div class="cultural-heritage-grid">
+            <?php
+            $heritageData = [];
+            if (file_exists('Cultural Heritage Module/cultural-heritage.json')) {
+                $heritageData = json_decode(file_get_contents('Cultural Heritage Module/cultural-heritage.json'), true) ?? [];
+            }
+            
+            // Display first 4 cultural heritage items
+            $displayHeritage = array_slice($heritageData, 0, 4);
+            
+            foreach ($displayHeritage as $item):
+                if (!isset($item['id'])) continue;
+            ?>
+                <a href="Cultural Heritage Module/cultural-heritage.php" class="cultural-heritage-card">
+                    <?php if (!empty($item['image'])): ?>
+                        <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['title'] ?? 'Cultural Heritage'); ?>">
+                    <?php else: ?>
+                        <img src="assets/images/cultural-heritage-default.jpg" alt="<?php echo htmlspecialchars($item['title'] ?? 'Cultural Heritage'); ?>">
+                    <?php endif; ?>
+                    <div class="cultural-heritage-content">
+                        <?php if (!empty($item['category'])): ?>
+                            <span class="cultural-heritage-category"><?php echo htmlspecialchars($item['category']); ?></span>
+                        <?php endif; ?>
+                        <h3><?php echo htmlspecialchars($item['title'] ?? 'Untitled'); ?></h3>
+                        <p><?php echo htmlspecialchars(substr($item['description'] ?? '', 0, 100)) . (strlen($item['description'] ?? '') > 100 ? '...' : ''); ?></p>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+            
+            <?php if (empty($displayHeritage)): ?>
+                <p style="text-align:center;grid-column:1/-1;">No cultural heritage content yet.</p>
+            <?php endif; ?>
+        </div>
+        <?php if (!empty($displayHeritage)): ?>
+        <div class="cultural-heritage-actions">
+            <a href="Cultural Heritage Module/cultural-heritage.php" class="btn btn-primary">View All Cultural Heritage →</a>
+        </div>
+        <?php endif; ?>
+    </section>
+
     <!-- Planning Section -->
     <section class="planning" id="plan">
         <h2>Plan Your Visit</h2>
@@ -352,6 +400,184 @@
     </section>
 
     <style>
+        .hero-accordion-gallery {
+            width: 100%;
+            height: 100vh;
+            max-height: 700px;
+            overflow: hidden;
+        }
+        .accordion-gallery {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        .gallery-item {
+            flex: 0.7;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: flex 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .gallery-item.is-active {
+            flex: 4.5;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .gallery-item.is-active img {
+            transform: scale(1.05);
+        }
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .gallery-item.is-active .card-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .card-content .slide-tagline {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+        }
+        .card-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+        .card-content p {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.9);
+        }
+        @media (max-width: 768px) {
+            .hero-accordion-gallery {
+                height: 60vh;
+                max-height: 400px;
+            }
+            .gallery-item {
+                flex: 0.5;
+            }
+            .gallery-item.is-active {
+                flex: 3;
+            }
+            .card-content {
+                padding: 1rem;
+            }
+            .card-content h3 {
+                font-size: 1.1rem;
+            }
+            .card-content p {
+                font-size: 0.85rem;
+            }
+        }
+        .cultural-heritage-preview {
+            padding: 4rem 2rem;
+            background-color: var(--light-gray, #f3f4f6);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .cultural-heritage-preview h2 {
+            font-size: 2.5rem;
+            color: var(--dark-green, #1d5a3d);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .cultural-heritage-preview .section-subtitle {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .cultural-heritage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .cultural-heritage-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+        }
+        .cultural-heritage-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .cultural-heritage-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .cultural-heritage-content {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .cultural-heritage-category {
+            display: inline-block;
+            background: var(--light-green, #2d7a4d);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            align-self: flex-start;
+        }
+        .cultural-heritage-content h3 {
+            font-size: 1.25rem;
+            color: var(--dark-green, #1d5a3d);
+            margin-bottom: 0.5rem;
+        }
+        .cultural-heritage-content p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .cultural-heritage-actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        @media (max-width: 768px) {
+            .cultural-heritage-preview {
+                padding: 3rem 1rem;
+            }
+            .cultural-heritage-preview h2 {
+                font-size: 2rem;
+            }
+            .cultural-heritage-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
         .hotels-restaurants {
             padding: 4rem 2rem;
             background-color: var(--light-gray, #f3f4f6);
@@ -577,6 +803,74 @@
         </style>
 
 <script src="js/script.js"></script>
+<script>
+    // Accordion Gallery Auto-Cycling Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        const galleryContainer = document.querySelector('.accordion-gallery');
+        let currentIndex = 0;
+        let autoCycleInterval;
+        let isPaused = false;
+        const cycleDuration = 5000; // 5 seconds
+
+        function activateCard(index) {
+            galleryItems.forEach(item => item.classList.remove('is-active'));
+            galleryItems[index].classList.add('is-active');
+            currentIndex = index;
+        }
+
+        function nextCard() {
+            const nextIndex = (currentIndex + 1) % galleryItems.length;
+            activateCard(nextIndex);
+        }
+
+        function startAutoCycle() {
+            if (autoCycleInterval) {
+                clearInterval(autoCycleInterval);
+            }
+            if (!isPaused) {
+                autoCycleInterval = setInterval(nextCard, cycleDuration);
+            }
+        }
+
+        function stopAutoCycle() {
+            if (autoCycleInterval) {
+                clearInterval(autoCycleInterval);
+                autoCycleInterval = null;
+            }
+        }
+
+        // Start auto-cycling on page load
+        startAutoCycle();
+
+        // User interaction handlers - pause on hover, resume when leaving entire gallery
+        galleryItems.forEach((item, index) => {
+            // Pause and activate on hover/focus
+            item.addEventListener('mouseenter', () => {
+                isPaused = true;
+                stopAutoCycle();
+                activateCard(index);
+            });
+
+            item.addEventListener('focusin', () => {
+                isPaused = true;
+                stopAutoCycle();
+                activateCard(index);
+            });
+        });
+
+        // Resume when mouse leaves the entire gallery
+        galleryContainer.addEventListener('mouseleave', () => {
+            isPaused = false;
+            startAutoCycle();
+        });
+
+        // Handle focus out on container
+        galleryContainer.addEventListener('focusout', () => {
+            isPaused = false;
+            startAutoCycle();
+        });
+    });
+</script>
 </body>
 </html>
-
