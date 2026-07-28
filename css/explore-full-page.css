@@ -419,22 +419,23 @@
 
 /* Toggle Button */
 .toggle-items-btn {
-    background-color: var(--dark-green);
+    background: linear-gradient(135deg, var(--dark-green), var(--light-green));
     color: var(--white);
     border: none;
     padding: 1rem 2rem;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
     transition: all 0.3s ease;
-    width: 100%;
-    margin-top: 1rem;
+    width: fit-content;
+    align-self: flex-start;
+    box-shadow: 0 4px 15px rgba(29,90,61,0.3);
 }
 
 .toggle-items-btn:hover {
-    background-color: var(--light-green);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(29,90,61,0.4);
 }
 
 /* Items List */
@@ -550,16 +551,6 @@
     }
 }
 
-.items-list {
-    margin-top: 1.5rem;
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out;
-}
-
-.items-list.show {
-    max-height: 800px;
-}
 
 .food-item {
     display: flex;
@@ -683,26 +674,6 @@
     border-radius: 25px;
     display: inline-block;
     align-self: flex-start;
-}
-
-.toggle-items-btn {
-    background: linear-gradient(135deg, var(--dark-green), var(--light-green));
-    color: var(--white);
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-    width: fit-content;
-    align-self: flex-start;
-    box-shadow: 0 4px 15px rgba(29,90,61,0.3);
-}
-
-.toggle-items-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(29,90,61,0.4);
 }
 
 /* Carousel Navigation */

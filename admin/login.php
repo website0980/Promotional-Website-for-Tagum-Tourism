@@ -66,7 +66,7 @@ if (isLoggedIn()) {
     <div class="login-container">
         <div class="login-box">
             <div class="login-header">
-<img src="../../images/TagumTourism.jpg" alt="Tagum City" class="logo-img logo-img-small">
+<img src="../../images/TagumTourism.jpg" alt="Tagum City" class="logo-img logo-img-small" loading="lazy">
                 <h1>Tourism Admin</h1>
                 <p>Destination Management System</p>
             </div>

@@ -37,7 +37,7 @@
 }
 
 .cultural-item {
-    background: var(--white);
+    background: transparent;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
@@ -145,7 +145,7 @@
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    background: var(--light-gray);
+    background: transparent;
     border-radius: 12px;
     grid-column: 1 / -1;
 }

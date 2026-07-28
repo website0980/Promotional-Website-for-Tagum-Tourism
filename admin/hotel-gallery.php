@@ -45,7 +45,7 @@ function handleUploadForHotel(int $hotelId): void {
 
     // Prevent hitting PHP's max_file_uploads with huge multi-upload batches.
     // Your server warning indicates max allowable uploads exceeded.
-    $maxFilesPerUpload = 5;
+    $maxFilesPerUpload = 10;
     $count = count($_FILES['gallery_files']['name']);
     if ($count > $maxFilesPerUpload) {
         $errors[] = 'You selected ' . $count . ' files. Upload is limited to ' . $maxFilesPerUpload . ' images per request.';
@@ -198,8 +198,8 @@ $gallery = loadGalleryForHotel($hotelId);
     <link rel="stylesheet" href="../css/admin.css">
     <style>
         .hotel-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
-        .gallery-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; background: #fff; }
-        .gallery-card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+        .gallery-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+        .gallery-card img { width: 100%; height: auto; object-fit: contain; display: block; }
         .gallery-card .gallery-meta { padding: .75rem; }
         .gallery-card .gallery-meta .caption { font-size: .9rem; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .gallery-actions { padding: .75rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; }
@@ -270,7 +270,7 @@ $gallery = loadGalleryForHotel($hotelId);
                     <div class="form-group">
                         <label>Choose photos (multiple allowed)</label>
                         <input type="file" name="gallery_files[]" accept="image/*" multiple required>
-                        <small style="display:block; margin-top:.25rem; color:#6b7280;">Max 5 images per upload to avoid server “max allowable file uploads exceeded”.</small>
+                        <small style="display:block; margin-top:.25rem; color:#6b7280;">Max 10 images per upload to avoid server “max allowable file uploads exceeded”.</small>
                     </div>
 
 
@@ -280,7 +280,16 @@ $gallery = loadGalleryForHotel($hotelId);
                         <div id="captionInputs" style="margin-top:.5rem;"></div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="margin-top:1rem;">Upload</button>
+                    <div id="uploadProgress" style="display:none; margin-top:1rem; padding:1rem; background:transparent; border-radius:8px; border:1px solid #e5e7eb;">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <div style="flex:1; height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
+                                <div id="progressBar" style="width:0%; height:100%; background:#1d5a3d; transition:width 0.3s ease;"></div>
+                            </div>
+                            <span id="progressText" style="font-weight:600; color:#1d5a3d; min-width:50px;">0%</span>
+                        </div>
+                        <div id="uploadStatus" style="margin-top:0.5rem; font-size:0.9rem; color:#6b7280;"></div>
+                    </div>
+<button type="submit" class="btn btn-primary" style="margin-top:1rem;">Upload</button>
                 </form>
             </div>
 
@@ -292,7 +301,7 @@ $gallery = loadGalleryForHotel($hotelId);
                     <div class="hotel-gallery-grid">
                         <?php foreach ($gallery as $item): ?>
                             <div class="gallery-card">
-                                <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="Hotel photo">
+                                <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="Hotel photo" loading="lazy">
                                 <div class="gallery-meta">
                                     <div class="caption"><?php echo htmlspecialchars($item['caption'] ?? ''); ?></div>
                                 </div>
@@ -339,6 +348,8 @@ $gallery = loadGalleryForHotel($hotelId);
         });
     }
 </script>
+<script src="upload-progress.js"></script>
 </body>
 </html>
+
 

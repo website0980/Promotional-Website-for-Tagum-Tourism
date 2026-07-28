@@ -9,10 +9,6 @@ $slide = [
     'title' => '',
     'description' => '',
     'image' => '',
-    'btn_primary_text' => 'Explore Now',
-    'btn_primary_link' => '#plan',
-    'btn_secondary_text' => 'Learn More',
-    'btn_secondary_link' => '#explore',
     'sort_order' => 0,
     'active' => 1,
 ];
@@ -41,10 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
         'image' => $_POST['image'] ?? ($slide['image'] ?? ''),
-        'btn_primary_text' => trim($_POST['btn_primary_text'] ?? 'Explore Now'),
-        'btn_primary_link' => trim($_POST['btn_primary_link'] ?? '#plan'),
-        'btn_secondary_text' => trim($_POST['btn_secondary_text'] ?? 'Learn More'),
-        'btn_secondary_link' => trim($_POST['btn_secondary_link'] ?? '#explore'),
         'sort_order' => (int) ($_POST['sort_order'] ?? 0),
         'active' => isset($_POST['active']) ? 1 : 0,
     ];
@@ -161,30 +153,6 @@ function adminImageSrc($path) {
                         <label for="sort_order">Display Order</label>
                         <input type="number" id="sort_order" name="sort_order" value="<?php echo (int) ($slide['sort_order'] ?? 0); ?>" min="0" class="form-control" style="max-width:120px;">
                         <small>Lower numbers appear first in the carousel.</small>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h2>Buttons (Optional)</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="btn_primary_text">Primary Button Text</label>
-                            <input type="text" id="btn_primary_text" name="btn_primary_text" value="<?php echo htmlspecialchars($slide['btn_primary_text'] ?? 'Explore Now'); ?>" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="btn_primary_link">Primary Button Link</label>
-                            <input type="text" id="btn_primary_link" name="btn_primary_link" value="<?php echo htmlspecialchars($slide['btn_primary_link'] ?? '#plan'); ?>" class="form-control" placeholder="#plan">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="btn_secondary_text">Secondary Button Text</label>
-                            <input type="text" id="btn_secondary_text" name="btn_secondary_text" value="<?php echo htmlspecialchars($slide['btn_secondary_text'] ?? 'Learn More'); ?>" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="btn_secondary_link">Secondary Button Link</label>
-                            <input type="text" id="btn_secondary_link" name="btn_secondary_link" value="<?php echo htmlspecialchars($slide['btn_secondary_link'] ?? '#explore'); ?>" class="form-control" placeholder="#explore">
-                        </div>
                     </div>
                 </div>
 

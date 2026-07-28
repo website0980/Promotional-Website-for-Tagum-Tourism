@@ -146,7 +146,7 @@ switch ($application['certification_track']) {
             <div class="print-form-container">
                 <div class="form-header">
                     <div class="logo-container">
-                        <img src="../images/City%20of%20Tagum.png" alt="City of Tagum" class="form-logo">
+                        <img src="../images/City%20of%20Tagum.png" alt="City of Tagum" class="form-logo" loading="lazy">
                     </div>
                     <div class="form-header-top">Republic of the Philippines | Province of Davao del Norte | City of Tagum</div>
                     <div class="form-title">LOCAL CERTIFICATION APPLICATION FORM</div>

@@ -348,15 +348,6 @@ body {
     background-color: var(--light-green);
 }
 
-.btn-delete {
-    background-color: var(--dark-green);
-    color: var(--white);
-}
-
-.btn-delete:hover {
-    background-color: var(--light-green);
-}
-
 .btn:hover {
     transform: translateY(-1px);
 }

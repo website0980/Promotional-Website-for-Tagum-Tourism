@@ -6,8 +6,6 @@
     <title>Explore Tagum City</title>
     <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/explore-full-page.css">
-    <link rel="stylesheet" href="../assets/css/explore-cuisine-landscape.css">
-    <link rel="stylesheet" href="../assets/css/explore-full-page-landscape.css">
 </head>
 <body>
     <!-- Navigation Bar -->

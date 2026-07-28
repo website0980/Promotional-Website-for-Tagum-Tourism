@@ -11,6 +11,7 @@ $hotels = loadHotels();
 $restaurants = loadRestaurants();
 $carouselSlides = loadCarouselSlides();
 $certificationApplications = loadAccommodationApplications();
+$culturalHeritage = json_decode(file_get_contents('../Cultural Heritage Module/cultural-heritage.json'), true) ?? [];
 
 $message = '';
 $messageType = '';
@@ -113,7 +114,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
     <header class="admin-header">
         <div class="admin-header-content">
             <div class="admin-title">
-                <img src="../../images/TagumTourism.jpg" alt="Tagum City Logo" class="admin-logo">
+                <img src="../../images/TagumTourism.jpg" alt="Tagum City Logo" class="admin-logo" loading="lazy">
                 <span>Tourism Admin Dashboard</span>
             </div>
             <div class="admin-nav">
@@ -137,6 +138,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
             <div class="tab-buttons">
                 <a href="?tab=destinations" class="btn btn-primary tab-btn <?php echo $currentTab === 'destinations' ? 'active' : ''; ?>">Destinations</a>
                 <a href="?tab=experiences" class="btn btn-primary tab-btn <?php echo $currentTab === 'experiences' ? 'active' : ''; ?>">Experiences</a>
+                <a href="?tab=cultural-heritage" class="btn btn-primary tab-btn <?php echo $currentTab === 'cultural-heritage' ? 'active' : ''; ?>">Cultural Heritage</a>
                 <a href="?tab=events" class="btn btn-primary tab-btn <?php echo $currentTab === 'events' ? 'active' : ''; ?>">Events</a>
                 <a href="?tab=festivals" class="btn btn-primary tab-btn <?php echo $currentTab === 'festivals' ? 'active' : ''; ?>">Festivals</a>
                 <a href="?tab=hotels" class="btn btn-primary tab-btn <?php echo $currentTab === 'hotels' ? 'active' : ''; ?>">Hotels</a>
@@ -175,7 +177,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($destination['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($destination['image']); ?>" alt="<?php echo htmlspecialchars($destination['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($destination['image']); ?>" alt="<?php echo htmlspecialchars($destination['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -194,10 +196,8 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                         </td>
                                         <td class="action-buttons">
                                             <a href="add-destination.php?id=<?php echo $destination['id']; ?>" class="btn btn-small btn-edit">Edit</a>
-
-
-</td>
-</tr>
+                                        </td>
+                                    </tr>
 <?php endforeach; ?>
 
                             </tbody>
@@ -237,7 +237,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($experience['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($experience['image']); ?>" alt="<?php echo htmlspecialchars($experience['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($experience['image']); ?>" alt="<?php echo htmlspecialchars($experience['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -271,7 +271,54 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                 </div>
             <?php endif; ?>
 
+            <?php if ($currentTab === 'cultural-heritage'): ?>
+                <div class="dashboard-header">
+                    <h2>Manage Cultural Heritage</h2>
+                    <a href="add-cultural-heritage.php" class="btn btn-primary">+ Add New Cultural Heritage</a>
+                </div>
 
+                <div class="table-responsive">
+                    <?php if (empty($culturalHeritage)): ?>
+                        <div class="empty-state">
+                            <p>🏛️ No cultural heritage items found</p>
+                            <a href="add-cultural-heritage.php" class="btn btn-primary">Add your first cultural heritage item</a>
+                        </div>
+<?php else: ?>
+                        <table class="destinations-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($culturalHeritage as $item): ?>
+                                    <tr>
+                                        <td class="table-image">
+                                            <?php if (!empty($item['image'])): ?>
+                                                <img src="<?php echo htmlspecialchars('../' . $item['image']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy">
+                                            <?php else: ?>
+                                                <span class="no-image">No Image</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo htmlspecialchars($item['title']); ?></strong>
+                                        </td>
+                                        <td>
+                                            <span class="type-badge"><?php echo htmlspecialchars($item['category'] ?? 'N/A'); ?></span>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <a href="add-cultural-heritage.php?id=<?php echo $item['id']; ?>" class="btn btn-small btn-edit">Edit</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
 
             <?php if ($currentTab === 'events'): ?>
                 <div class="dashboard-header">
@@ -301,7 +348,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                 <td class="table-image">
                                             <?php if (!empty($site['image'])): ?>
-<img src="<?php echo htmlspecialchars($site['image']); ?>" alt="<?php echo htmlspecialchars($site['name']); ?>">
+<img src="<?php echo htmlspecialchars($site['image']); ?>" alt="<?php echo htmlspecialchars($site['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -361,7 +408,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($festival['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($festival['image']); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($festival['image']); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -387,13 +434,62 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
             <?php endif; ?>
 
             <?php if ($currentTab === 'hotels'): ?>
+                <?php
+                // Calculate category counts
+                $categoryCounts = [
+                    'all' => count($hotels),
+                    'dot_accredited' => 0,
+                    'locally_certified' => 0
+                ];
+                foreach ($hotels as $hotel) {
+                    $category = normalizeHotelCategory($hotel['category'] ?? '');
+                    if ($category === 'DOT Accredited') {
+                        $categoryCounts['dot_accredited']++;
+                    } elseif ($category === 'Locally Certified') {
+                        $categoryCounts['locally_certified']++;
+                    }
+                }
+                $currentCategoryFilter = $_GET['category_filter'] ?? 'all';
+                $filteredHotels = $currentCategoryFilter === 'all'
+                    ? $hotels
+                    : array_filter($hotels, function($hotel) use ($currentCategoryFilter) {
+                        $category = normalizeHotelCategory($hotel['category'] ?? '');
+                        if ($currentCategoryFilter === 'dot_accredited') {
+                            return $category === 'DOT Accredited';
+                        } elseif ($currentCategoryFilter === 'locally_certified') {
+                            return $category === 'Locally Certified';
+                        }
+                        return false;
+                    });
+                ?>
                 <div class="dashboard-header">
                     <h2>Manage Hotels</h2>
                     <a href="add-hotel.php" class="btn btn-primary">+ Add New Hotel</a>
                 </div>
 
+                <div class="status-filters">
+                    <a href="?tab=hotels&category_filter=all" class="status-filter-btn <?php echo $currentCategoryFilter === 'all' ? 'active' : ''; ?>">
+                        All <span class="count"><?php echo $categoryCounts['all']; ?></span>
+                    </a>
+                    <a href="?tab=hotels&category_filter=dot_accredited" class="status-filter-btn <?php echo $currentCategoryFilter === 'dot_accredited' ? 'active' : ''; ?>">
+                        DOT Accredited <span class="count"><?php echo $categoryCounts['dot_accredited']; ?></span>
+                    </a>
+                    <a href="?tab=hotels&category_filter=locally_certified" class="status-filter-btn <?php echo $currentCategoryFilter === 'locally_certified' ? 'active' : ''; ?>">
+                        Locally Certified <span class="count"><?php echo $categoryCounts['locally_certified']; ?></span>
+                    </a>
+                </div>
+
+                <style>
+                    .type-badge {
+                        background: transparent;
+                        color: var(--dark-gray);
+                        border: none;
+                        padding: 0;
+                    }
+                </style>
+
                 <div class="table-responsive">
-                    <?php if (empty($hotels)): ?>
+                    <?php if (empty($filteredHotels)): ?>
                         <div class="empty-state">
                             <p>🏨 No hotels found</p>
                             <a href="add-hotel.php" class="btn btn-primary">Add your first hotel</a>
@@ -410,11 +506,11 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($hotels as $hotel): ?>
+                                <?php foreach ($filteredHotels as $hotel): ?>
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($hotel['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($hotel['image']); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($hotel['image']); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -470,7 +566,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($restaurant['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($restaurant['image']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($restaurant['image']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -490,12 +586,48 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
             <?php endif; ?>
 
             <?php if ($currentTab === 'certification'): ?>
+                <?php
+                // Calculate status counts
+                $statusCounts = [
+                    'all' => count($certificationApplications),
+                    'pending' => 0,
+                    'approved' => 0,
+                    'rejected' => 0
+                ];
+                foreach ($certificationApplications as $app) {
+                    $status = $app['status'] ?? 'pending';
+                    if (isset($statusCounts[$status])) {
+                        $statusCounts[$status]++;
+                    }
+                }
+                $currentFilter = $_GET['status_filter'] ?? 'all';
+                $filteredApplications = $currentFilter === 'all'
+                    ? $certificationApplications
+                    : array_filter($certificationApplications, function($app) use ($currentFilter) {
+                        return ($app['status'] ?? 'pending') === $currentFilter;
+                    });
+                ?>
                 <div class="dashboard-header">
                     <h2>Manage Certification Applications</h2>
                 </div>
 
+                <div class="status-filters">
+                    <a href="?tab=certification&status_filter=all" class="status-filter-btn <?php echo $currentFilter === 'all' ? 'active' : ''; ?>">
+                        All <span class="count"><?php echo $statusCounts['all']; ?></span>
+                    </a>
+                    <a href="?tab=certification&status_filter=pending" class="status-filter-btn <?php echo $currentFilter === 'pending' ? 'active' : ''; ?>">
+                        Pending <span class="count"><?php echo $statusCounts['pending']; ?></span>
+                    </a>
+                    <a href="?tab=certification&status_filter=approved" class="status-filter-btn <?php echo $currentFilter === 'approved' ? 'active' : ''; ?>">
+                        Approved <span class="count"><?php echo $statusCounts['approved']; ?></span>
+                    </a>
+                    <a href="?tab=certification&status_filter=rejected" class="status-filter-btn <?php echo $currentFilter === 'rejected' ? 'active' : ''; ?>">
+                        Rejected <span class="count"><?php echo $statusCounts['rejected']; ?></span>
+                    </a>
+                </div>
+
                 <div class="table-responsive">
-                    <?php if (empty($certificationApplications)): ?>
+                    <?php if (empty($filteredApplications)): ?>
                         <div class="empty-state">
                             <p>📋 No certification applications found</p>
                         </div>
@@ -514,11 +646,11 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($certificationApplications as $app): ?>
+                                <?php foreach ($filteredApplications as $app): ?>
                                     <tr>
                                         <td><?php echo (int) $app['id']; ?></td>
                                         <td>
-                                            <span class="type-badge <?php echo ($app['certification_track'] === 'dot_accredited') ? 'badge-dot' : 'badge-local'; ?>">
+                                            <span class="type-badge badge-track">
                                                 <?php echo ($app['certification_track'] === 'dot_accredited') ? 'DOT Accredited' : 'Locally Certified'; ?>
                                             </span>
                                         </td>
@@ -561,15 +693,11 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                         border: 1px solid #ddd;
                         font-size: 0.875rem;
                     }
-                    .badge-dot {
+                    .badge-track {
                         background-color: transparent;
-                        color: #1d5a3d;
+                        color: var(--dark-green);
+                        font-weight: 600;
                     }
-                    .badge-local {
-                        background-color: transparent;
-                        color: #f59e0b;
-                    }
-
                 </style>
             <?php endif; ?>
 
@@ -609,7 +737,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($carouselSlide['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($carouselImg); ?>" alt="<?php echo htmlspecialchars($titlePreview); ?>">
+                                                <img src="<?php echo htmlspecialchars($carouselImg); ?>" alt="<?php echo htmlspecialchars($titlePreview); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>

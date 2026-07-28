@@ -103,7 +103,7 @@
             <div class="explore-card">
                 <div class="card-image">👥</div>
                 <h3>Events</h3>
-                <p>Experience the rich history and cultural heritage of our community.</p>
+                <p>Check every events happening in Tagum City</p>
                 <a href="Explore module/events-calendar.php" class="card-link">Learn More →</a>
             </div>
             
@@ -161,9 +161,9 @@
             ?>
                 <a href="Experience module/experience.php?id=<?php echo $exp['id']; ?>" class="experience-item">
                     <?php if (!empty($exp['image'])): ?>
-                        <img src="<?php echo htmlspecialchars($exp['image']); ?>" alt="<?php echo htmlspecialchars($exp['name']); ?>">
+                        <img src="<?php echo htmlspecialchars($exp['image']); ?>" alt="<?php echo htmlspecialchars($exp['name']); ?>" loading="lazy">
                     <?php else: ?>
-                        <img src="assets/images/experience-default.jpg" alt="<?php echo htmlspecialchars($exp['name']); ?>">
+                        <img src="assets/images/experience-default.jpg" alt="<?php echo htmlspecialchars($exp['name']); ?>" loading="lazy">
                     <?php endif; ?>
                     <h3><?php echo isset($exp['featured']) && $exp['featured'] === true ? '⭐ ' : ''; ?><?php echo htmlspecialchars($exp['name']); ?></h3>
                     <p><?php echo htmlspecialchars($exp['description']); ?></p>
@@ -173,25 +173,25 @@
             
             <?php if (empty($displayExperiences)): ?>
             <a href="Experience module/experience.php?type=river-tours" class="experience-item">
-                <img src="assets/images/experience-1.jpg" alt="River Tours">
+                <img src="assets/images/experience-1.jpg" alt="River Tours" loading="lazy">
                 <h3>River Tours</h3>
                 <p>Navigate pristine waterways with expert guides.</p>
                 <span class="experience-cta">View Details →</span>
             </a>
             <a href="Experience module/experience.php?type=mountain-hiking" class="experience-item">
-                <img src="assets/images/experience-2.jpg" alt="Hiking">
+                <img src="assets/images/experience-2.jpg" alt="Hiking" loading="lazy">
                 <h3>Mountain Hiking</h3>
                 <p>Trek through lush forests and scenic trails.</p>
                 <span class="experience-cta">View Details →</span>
             </a>
             <a href="Experience module/experience.php?type=cultural-events" class="experience-item">
-                <img src="assets/images/experience-3.jpg" alt="Cultural Events">
+                <img src="assets/images/experience-3.jpg" alt="Cultural Events" loading="lazy">
                 <h3>Cultural Events</h3>
                 <p>Participate in local festivals and celebrations.</p>
                 <span class="experience-cta">View Details →</span>
             </a>
             <a href="Experience module/experience.php?type=food-tours" class="experience-item">
-                <img src="assets/images/experience-4.jpg" alt="Food Tours">
+                <img src="assets/images/experience-4.jpg" alt="Food Tours" loading="lazy">
                 <h3>Food Tours</h3>
                 <p>Taste the flavors of authentic local cuisine.</p>
                 <span class="experience-cta">View Details →</span>
@@ -267,9 +267,9 @@
             ?>
                 <a href="Cultural Heritage Module/cultural-heritage.php" class="cultural-heritage-card">
                     <?php if (!empty($item['image'])): ?>
-                        <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['title'] ?? 'Cultural Heritage'); ?>">
+                        <img src="<?php echo htmlspecialchars($item['image']); ?>" alt="<?php echo htmlspecialchars($item['title'] ?? 'Cultural Heritage'); ?>" loading="lazy">
                     <?php else: ?>
-                        <img src="assets/images/cultural-heritage-default.jpg" alt="<?php echo htmlspecialchars($item['title'] ?? 'Cultural Heritage'); ?>">
+                        <img src="assets/images/cultural-heritage-default.jpg" alt="<?php echo htmlspecialchars($item['title'] ?? 'Cultural Heritage'); ?>" loading="lazy">
                     <?php endif; ?>
                     <div class="cultural-heritage-content">
                         <?php if (!empty($item['category'])): ?>
@@ -330,9 +330,9 @@
             ?>
                 <a href="Plan module/destination.php?destination=<?php echo $linkName; ?>" class="experience-item">
                     <?php if (!empty($dest['image'])): ?>
-                        <img src="<?php echo str_replace('../../', '', htmlspecialchars($dest['image'])); ?>" alt="<?php echo htmlspecialchars($dest['name']); ?>">
+                        <img src="<?php echo str_replace('../../', '', htmlspecialchars($dest['image'])); ?>" alt="<?php echo htmlspecialchars($dest['name']); ?>" loading="lazy">
                     <?php else: ?>
-                        <img src="assets/images/destination-default.jpg" alt="<?php echo htmlspecialchars($dest['name']); ?>">
+                        <img src="assets/images/destination-default.jpg" alt="<?php echo htmlspecialchars($dest['name']); ?>" loading="lazy">
                     <?php endif; ?>
                     <h3><?php echo ($dest['featured'] == 1) ? '⭐ ' : ''; ?><?php echo htmlspecialchars($dest['name']); ?></h3>
                     <p><?php echo htmlspecialchars(substr($dest['description'], 0, 100)) . (strlen($dest['description']) > 100 ? '...' : ''); ?></p>
@@ -342,25 +342,25 @@
             
             <?php if (empty($destinations)): ?>
             <a href="Plan module/destination.php?destination=pumauna-waterfalls" class="experience-item">
-                <img src="assets/images/destinations/pumauna-waterfalls.jpg" alt="Pumauna Waterfalls">
+                <img src="assets/images/destinations/pumauna-waterfalls.jpg" alt="Pumauna Waterfalls" loading="lazy">
                 <h3>Pumauna Waterfalls</h3>
                 <p>Magnificent cascade with natural pools and scenic hiking trails.</p>
                 <span class="experience-cta">View Details →</span>
             </a>
             <a href="Plan module/destination.php?destination=azuela-springs" class="experience-item">
-                <img src="assets/images/destinations/azuela-springs.jpg" alt="Azuela Springs">
+                <img src="assets/images/destinations/azuela-springs.jpg" alt="Azuela Springs" loading="lazy">
                 <h3>Azuela Springs</h3>
                 <p>Crystal clear natural pools fed by underground springs.</p>
                 <span class="experience-cta">View Details →</span>
             </a>
             <a href="Plan module/destination.php?destination=mt-kampalilis" class="experience-item">
-                <img src="assets/images/destinations/mt-kampalilis.jpg" alt="Mt. Kampalilis">
+                <img src="assets/images/destinations/mt-kampalilis.jpg" alt="Mt. Kampalilis" loading="lazy">
                 <h3>Mt. Kampalilis</h3>
                 <p>Challenge yourself with a scenic mountain trek to 1,240m peak.</p>
                 <span class="experience-cta">View Details →</span>
             </a>
             <a href="Plan module/destination.php?destination=tagum-river" class="experience-item">
-                <img src="assets/images/destinations/tagum-river.jpg" alt="Tagum River">
+                <img src="assets/images/destinations/tagum-river.jpg" alt="Tagum River" loading="lazy">
                 <h3>Tagum River</h3>
                 <p>Pristine waterway perfect for boating, fishing, and relaxation.</p>
                 <span class="experience-cta">View Details →</span>
@@ -494,7 +494,7 @@
         }
         .cultural-heritage-preview {
             padding: 4rem 2rem;
-            background-color: var(--light-gray, #f3f4f6);
+            background-color: transparent;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -580,7 +580,7 @@
         }
         .hotels-restaurants {
             padding: 4rem 2rem;
-            background-color: var(--light-gray, #f3f4f6);
+            background-color: transparent;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -592,7 +592,7 @@
         }
         .certification-application-section {
             padding: 4rem 2rem;
-            background-color: var(--light-gray, #f3f4f6);
+            background-color: transparent;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -724,7 +724,7 @@
         <style>
             .contact-information {
                 padding: 4rem 2rem;
-                background-color: var(--light-gray, #f3f4f6);
+                background-color: transparent;
                 max-width: 1200px;
                 margin: 0 auto;
             }
