@@ -114,7 +114,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
     <header class="admin-header">
         <div class="admin-header-content">
             <div class="admin-title">
-                <img src="../../images/TagumTourism.jpg" alt="Tagum City Logo" class="admin-logo">
+                <img src="../../images/TagumTourism.jpg" alt="Tagum City Logo" class="admin-logo" loading="lazy">
                 <span>Tourism Admin Dashboard</span>
             </div>
             <div class="admin-nav">
@@ -145,6 +145,8 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                 <a href="?tab=restaurants" class="btn btn-primary tab-btn <?php echo $currentTab === 'restaurants' ? 'active' : ''; ?>">Restaurants</a>
                 <a href="?tab=certification" class="btn btn-primary tab-btn <?php echo $currentTab === 'certification' ? 'active' : ''; ?>">Certification</a>
                 <a href="?tab=carousel" class="btn btn-primary tab-btn <?php echo $currentTab === 'carousel' ? 'active' : ''; ?>">Carousel</a>
+                <a href="feedback-management.php" class="btn btn-primary tab-btn">Feedback Management</a>
+                <a href="feedback-reports.php" class="btn btn-primary tab-btn">Feedback Reports</a>
                 <div class="admin-search-wrapper">
                     <input type="text" id="adminSearch" class="admin-search-input" placeholder="🔍 Search <?php echo ucfirst($currentTab); ?>..." onkeyup="filterAdminTable()">
                 </div>
@@ -177,7 +179,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($destination['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($destination['image']); ?>" alt="<?php echo htmlspecialchars($destination['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($destination['image']); ?>" alt="<?php echo htmlspecialchars($destination['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -237,7 +239,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($experience['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($experience['image']); ?>" alt="<?php echo htmlspecialchars($experience['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($experience['image']); ?>" alt="<?php echo htmlspecialchars($experience['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -298,7 +300,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($item['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars('../' . $item['image']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>">
+                                                <img src="<?php echo htmlspecialchars('../' . $item['image']); ?>" alt="<?php echo htmlspecialchars($item['title']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -348,7 +350,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                 <td class="table-image">
                                             <?php if (!empty($site['image'])): ?>
-<img src="<?php echo htmlspecialchars($site['image']); ?>" alt="<?php echo htmlspecialchars($site['name']); ?>">
+<img src="<?php echo htmlspecialchars($site['image']); ?>" alt="<?php echo htmlspecialchars($site['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -408,7 +410,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($festival['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($festival['image']); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($festival['image']); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -510,7 +512,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($hotel['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($hotel['image']); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($hotel['image']); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -566,7 +568,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($restaurant['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($restaurant['image']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>">
+                                                <img src="<?php echo htmlspecialchars($restaurant['image']); ?>" alt="<?php echo htmlspecialchars($restaurant['name']); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
@@ -737,7 +739,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                     <tr>
                                         <td class="table-image">
                                             <?php if (!empty($carouselSlide['image'])): ?>
-                                                <img src="<?php echo htmlspecialchars($carouselImg); ?>" alt="<?php echo htmlspecialchars($titlePreview); ?>">
+                                                <img src="<?php echo htmlspecialchars($carouselImg); ?>" alt="<?php echo htmlspecialchars($titlePreview); ?>" loading="lazy">
                                             <?php else: ?>
                                                 <span class="no-image">No Image</span>
                                             <?php endif; ?>
