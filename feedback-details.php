@@ -112,16 +112,15 @@ function renderStars($rating) {
             <h3>Moderation Actions</h3>
             <form method="POST" action="feedback-management.php">
                 <input type="hidden" name="feedback_id" value="<?php echo $feedback['id']; ?>">
-                <input type="hidden" name="action" id="actionInput">
-                
+
                 <div class="form-group">
                     <label for="moderator_notes">Moderator Notes (Internal Only):</label>
                     <textarea id="moderator_notes" name="moderator_notes" rows="3" placeholder="Add internal notes about this review..."></textarea>
                 </div>
                 
                 <div class="action-buttons">
-                    <button type="button" class="btn btn-success" onclick="submitAction('approve')">Approve Review</button>
-                    <button type="button" class="btn btn-danger" onclick="submitAction('reject')">Reject Review</button>
+                    <button type="submit" name="action" value="approve" class="btn btn-success">Approve Review</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Review</button>
                 </div>
             </form>
         </div>
@@ -255,10 +254,3 @@ function renderStars($rating) {
     background: #dc2626;
 }
 </style>
-
-<script>
-function submitAction(action) {
-    document.getElementById('actionInput').value = action;
-    document.querySelector('form').submit();
-}
-</script>
