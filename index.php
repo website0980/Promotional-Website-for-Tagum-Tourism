@@ -668,7 +668,15 @@
             }
             .cert-promo-btn {
                 width: 100%;
-                max-width: 360px;
+                max-width: 100%;
+                box-sizing: border-box;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .cert-index-promo-actions {
+                flex-direction: column;
+                width: 100%;
             }
         }
         @media (min-width: 768px) {

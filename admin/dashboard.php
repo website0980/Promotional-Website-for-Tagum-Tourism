@@ -145,6 +145,8 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                 <a href="?tab=restaurants" class="btn btn-primary tab-btn <?php echo $currentTab === 'restaurants' ? 'active' : ''; ?>">Restaurants</a>
                 <a href="?tab=certification" class="btn btn-primary tab-btn <?php echo $currentTab === 'certification' ? 'active' : ''; ?>">Certification</a>
                 <a href="?tab=carousel" class="btn btn-primary tab-btn <?php echo $currentTab === 'carousel' ? 'active' : ''; ?>">Carousel</a>
+                <a href="feedback-management.php" class="btn btn-primary tab-btn">Feedback Management</a>
+                <a href="feedback-reports.php" class="btn btn-primary tab-btn">Feedback Reports</a>
                 <div class="admin-search-wrapper">
                     <input type="text" id="adminSearch" class="admin-search-input" placeholder="🔍 Search <?php echo ucfirst($currentTab); ?>..." onkeyup="filterAdminTable()">
                 </div>
