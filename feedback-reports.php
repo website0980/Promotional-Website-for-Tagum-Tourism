@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../database/setup_feedback.php';
 require_once __DIR__ . '/config.php';
 requireAuth();
@@ -95,63 +96,171 @@ if ($totalApproved > 0) {
     $stats['nps'] = round((($promoters - $detractors) / $totalApproved) * 100);
 }
 
-$db->close();
-
 // Export functionality
-if (isset($_GET['export']) && in_array($_GET['export'], ['csv', 'excel'])) {
-    $filename = 'feedback_report_' . date('Y-m-d') . '.' . $_GET['export'];
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    error_reporting(0);
+    $filename = 'comprehensive_feedback_report_' . date('Y-m-d') . '.csv';
     
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     
     $output = fopen('php://output', 'w');
     
-    // CSV Header
-    fputcsv($output, [
-        'ID',
-        'Establishment Type',
-        'Establishment ID',
-        'Overall Rating',
-        'Comment',
-        'Anonymous',
-        'Email',
-        'Recommendation',
-        'Status',
-        'Created At',
-        'Reviewed At',
-        'Reviewed By'
-    ]);
+    // Report Title
+    fputcsv($output, ['HOTEL & RESTAURANT FEEDBACK MANAGEMENT SYSTEM'], ',', '"', '\\');
+    fputcsv($output, ['COMPREHENSIVE FEEDBACK REPORT'], ',', '"', '\\');
+    fputcsv($output, ['Generated: ' . date('F j, Y g:i A')], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
     
-    // CSV Data
+    // ========================================
+    // SECTION 1: EXECUTIVE SUMMARY & ANALYTICS
+    // ========================================
+    fputcsv($output, ['SECTION 1: EXECUTIVE SUMMARY & ANALYTICS'], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    
+    // System Summary
+    fputcsv($output, ['--- SYSTEM SUMMARY ---'], ',', '"', '\\');
+    fputcsv($output, ['Metric', 'Value'], ',', '"', '\\');
+    fputcsv($output, ['Total Hotels', $stats['total'] ?? 0], ',', '"', '\\');
+    fputcsv($output, ['Total Restaurants', $stats['total'] ?? 0], ',', '"', '\\');
+    fputcsv($output, ['Total Approved Feedback', $stats['approved']], ',', '"', '\\');
+    fputcsv($output, ['Total Pending Feedback', $stats['pending']], ',', '"', '\\');
+    fputcsv($output, ['Total Rejected Feedback', $stats['rejected']], ',', '"', '\\');
+    fputcsv($output, ['Average Rating', $stats['avg_rating'] . ' / 5'], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    
+    // ========================================
+    // SECTION 2: OVERALL RATING DISTRIBUTION
+    // ========================================
+    fputcsv($output, ['SECTION 2: OVERALL RATING DISTRIBUTION'], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    fputcsv($output, ['Rating', 'Count', 'Percentage'], ',', '"', '\\');
+    
+    // Calculate rating distribution
+    $ratingCounts = [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
     foreach ($feedbackList as $feedback) {
-        fputcsv($output, [
-            $feedback['id'],
-            $feedback['establishment_type'],
-            $feedback['establishment_id'],
-            $feedback['overall_rating'],
-            $feedback['comment'] ?? '',
-            $feedback['anonymous'] ? 'Yes' : 'No',
-            $feedback['email'],
-            $feedback['recommendation'],
-            $feedback['status'],
-            $feedback['created_at'],
-            $feedback['reviewed_at'] ?? '',
-            $feedback['reviewed_by'] ?? ''
-        ]);
+        if (isset($feedback['overall_rating'])) {
+            $rating = (int)$feedback['overall_rating'];
+            if (isset($ratingCounts[$rating])) {
+                $ratingCounts[$rating]++;
+            }
+        }
     }
+    $totalRatings = array_sum($ratingCounts);
+    
+    for ($i = 5; $i >= 1; $i--) {
+        $count = $ratingCounts[$i];
+        $percentage = $totalRatings > 0 ? round(($count / $totalRatings) * 100, 1) : 0;
+        $stars = str_repeat('*', $i);
+        fputcsv($output, [$stars, $count, $percentage . '%'], ',', '"', '\\');
+    }
+    fputcsv($output, [], ',', '"', '\\');
+    
+    // ========================================
+    // SECTION 3: HOTEL FEEDBACK REPORT
+    // ========================================
+    fputcsv($output, ['SECTION 3: HOTEL FEEDBACK REPORT'], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    fputcsv($output, ['Establishment Name', 'Reviewer Email', 'Date', 'Rating', 'Comment', 'Status'], ',', '"', '\\');
+    
+    foreach ($feedbackList as $feedback) {
+        if ($feedback['establishment_type'] === 'hotel') {
+            $stmt = $db->prepare('SELECT name FROM hotel_items WHERE id = ?');
+            $stmt->bindValue(1, $feedback['establishment_id'], SQLITE3_INTEGER);
+            $result = $stmt->execute();
+            $row = $result->fetchArray(SQLITE3_ASSOC);
+            $establishmentName = $row['name'] ?? 'Unknown';
+            $date = date('F j, Y', strtotime($feedback['created_at']));
+            
+            fputcsv($output, [
+                $establishmentName,
+                $feedback['email'],
+                $date,
+                $feedback['overall_rating'] . '/5',
+                $feedback['comment'] ?? '',
+                $feedback['status']
+            ], ',', '"', '\\');
+        }
+    }
+    fputcsv($output, [], ',', '"', '\\');
+    
+    // ========================================
+    // SECTION 4: RESTAURANT FEEDBACK REPORT
+    // ========================================
+    fputcsv($output, ['SECTION 4: RESTAURANT FEEDBACK REPORT'], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    fputcsv($output, ['Establishment Name', 'Reviewer Email', 'Date', 'Rating', 'Comment', 'Status'], ',', '"', '\\');
+    
+    foreach ($feedbackList as $feedback) {
+        if ($feedback['establishment_type'] === 'restaurant') {
+            $stmt = $db->prepare('SELECT name FROM restaurant_items WHERE id = ?');
+            $stmt->bindValue(1, $feedback['establishment_id'], SQLITE3_INTEGER);
+            $result = $stmt->execute();
+            $row = $result->fetchArray(SQLITE3_ASSOC);
+            $establishmentName = $row['name'] ?? 'Unknown';
+            $date = date('F j, Y', strtotime($feedback['created_at']));
+            
+            fputcsv($output, [
+                $establishmentName,
+                $feedback['email'],
+                $date,
+                $feedback['overall_rating'] . '/5',
+                $feedback['comment'] ?? '',
+                $feedback['status']
+            ], ',', '"', '\\');
+        }
+    }
+    fputcsv($output, [], ',', '"', '\\');
+    
+    // ========================================
+    // SECTION 5: OVERALL SYSTEM REPORT
+    // ========================================
+    fputcsv($output, ['SECTION 5: OVERALL SYSTEM REPORT'], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    fputcsv($output, ['--- SYSTEM METRICS ---'], ',', '"', '\\');
+    fputcsv($output, ['Metric', 'Value'], ',', '"', '\\');
+    fputcsv($output, ['Total Feedback Records', $stats['total']], ',', '"', '\\');
+    fputcsv($output, ['Approved Feedback', $stats['approved']], ',', '"', '\\');
+    fputcsv($output, ['Pending Feedback', $stats['pending']], ',', '"', '\\');
+    fputcsv($output, ['Rejected Feedback', $stats['rejected']], ',', '"', '\\');
+    fputcsv($output, ['Average Rating', $stats['avg_rating'] . ' / 5'], ',', '"', '\\');
+    fputcsv($output, ['NPS Score', ($stats['nps'] >= 0 ? '+' : '') . $stats['nps']], ',', '"', '\\');
+    fputcsv($output, ['Anonymous Reviews', $stats['anonymous']], ',', '"', '\\');
+    fputcsv($output, [], ',', '"', '\\');
+    fputcsv($output, ['--- REPORT INFORMATION ---'], ',', '"', '\\');
+    fputcsv($output, ['Report Generated', date('F j, Y g:i A')], ',', '"', '\\');
+    fputcsv($output, ['Generated By', isset($_SESSION['admin_username']) ? $_SESSION['admin_username'] : 'Administrator'], ',', '"', '\\');
     
     fclose($output);
+    $db->close();
     exit;
 }
+
+$db->close();
 
 // PDF Export - Redirect to the dedicated comprehensive report generator
 if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
     // Build query params to pass filter context to the report generator
     $params = ['format' => 'pdf'];
+    
+    // Pass filter parameters
     if (!empty($_GET['establishment_type'])) {
-        $params['username'] = isset($_SESSION['admin_username']) ? $_SESSION['admin_username'] : 'Administrator';
+        $params['establishment_type'] = $_GET['establishment_type'];
     }
-    $redirectUrl = '../Feedback Module/generate_report.php?' . http_build_query($params);
+    if (!empty($_GET['status'])) {
+        $params['status'] = $_GET['status'];
+    }
+    if (!empty($_GET['rating'])) {
+        $params['rating'] = $_GET['rating'];
+    }
+    if (!empty($_GET['date_from'])) {
+        $params['date_from'] = $_GET['date_from'];
+    }
+    if (!empty($_GET['date_to'])) {
+        $params['date_to'] = $_GET['date_to'];
+    }
+    
+    $redirectUrl = 'generate_comprehensive_report.php?' . http_build_query($params);
     header('Location: ' . $redirectUrl);
     exit;
 }
@@ -273,15 +382,24 @@ if (isset($_GET['export']) && $_GET['export'] === 'pdf') {
     <div class="export-section">
         <h3>Export Report</h3>
         <div class="export-buttons">
-            <a href="?<?php echo http_build_query(array_merge($_GET, ['export' => 'csv'])); ?>" class="btn btn-primary">
-                📄 Download CSV
-            </a>
-            <a href="?<?php echo http_build_query(array_merge($_GET, ['export' => 'excel'])); ?>" class="btn btn-primary">
-                📊 Download Excel
-            </a>
-            <a href="?<?php echo http_build_query(array_merge($_GET, ['export' => 'pdf'])); ?>" class="btn btn-primary">
-                📑 Download PDF
-            </a>
+            <form method="GET" action="" style="display: inline;">
+                <?php foreach ($_GET as $key => $value): ?>
+                    <?php if ($key !== 'export'): ?>
+                        <input type="hidden" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($value); ?>">
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                <input type="hidden" name="export" value="csv">
+                <button type="submit" class="btn btn-primary">📄 Download CSV</button>
+            </form>
+            <form method="GET" action="" style="display: inline;">
+                <?php foreach ($_GET as $key => $value): ?>
+                    <?php if ($key !== 'export'): ?>
+                        <input type="hidden" name="<?php echo htmlspecialchars($key); ?>" value="<?php echo htmlspecialchars($value); ?>">
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                <input type="hidden" name="export" value="pdf">
+                <button type="submit" class="btn btn-primary">📑 Download PDF</button>
+            </form>
         </div>
     </div>
 

@@ -117,9 +117,9 @@ while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
 
 // Get statistics
 $stats = [
-    'pending' => 0,
-    'approved' => 0,
-    'rejected' => 0,
+    'Pending Review' => 0,
+    'Approved' => 0,
+    'Rejected' => 0,
     'total' => 0
 ];
 
@@ -199,23 +199,26 @@ function getStatusBadge($status) {
     <main class="admin-main">
     <div class="admin-header">
         <h1>Feedback Management</h1>
-        <a href="dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
+        <div class="admin-header-actions">
+            <a href="generate_comprehensive_report.php" class="btn btn-primary">Generate Comprehensive Report</a>
+            <a href="dashboard.php" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-value"><?php echo $stats['pending']; ?></div>
+            <div class="stat-value"><?php echo $stats['Pending Review']; ?></div>
             <div class="stat-label">Pending Reviews</div>
             <div class="stat-icon">⏳</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value"><?php echo $stats['approved']; ?></div>
+            <div class="stat-value"><?php echo $stats['Approved']; ?></div>
             <div class="stat-label">Approved Reviews</div>
             <div class="stat-icon">✓</div>
         </div>
         <div class="stat-card">
-            <div class="stat-value"><?php echo $stats['rejected']; ?></div>
+            <div class="stat-value"><?php echo $stats['Rejected']; ?></div>
             <div class="stat-label">Rejected Reviews</div>
             <div class="stat-icon">✗</div>
         </div>
@@ -299,7 +302,7 @@ function getStatusBadge($status) {
             <table class="feedback-table">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" id="selectAll"></th>
+                        <th><input type="checkbox" id="selectAll"> <label for="selectAll" style="cursor:pointer;">Select All</label></th>
                         <th>Date</th>
                         <th>Establishment</th>
                         <th>Email</th>
