@@ -12,6 +12,68 @@ function initSecureSession() {
 }
 initSecureSession();
 
+// Cache configuration
+define('CACHE_DIR', dirname(__DIR__) . '/cache/');
+define('CACHE_DURATION', 300); // 5 minutes in seconds
+
+// Initialize cache directory
+if (!is_dir(CACHE_DIR)) {
+    mkdir(CACHE_DIR, 0755, true);
+}
+
+// Cache functions
+function getCache($key) {
+    $cacheFile = CACHE_DIR . md5($key) . '.cache';
+    if (!file_exists($cacheFile)) {
+        return null;
+    }
+    
+    $cacheData = json_decode(file_get_contents($cacheFile), true);
+    if (!$cacheData || !isset($cacheData['data']) || !isset($cacheData['timestamp'])) {
+        return null;
+    }
+    
+    // Check if cache is expired
+    if (time() - $cacheData['timestamp'] > CACHE_DURATION) {
+        @unlink($cacheFile);
+        return null;
+    }
+    
+    return $cacheData['data'];
+}
+
+function setCache($key, $data) {
+    $cacheFile = CACHE_DIR . md5($key) . '.cache';
+    $cacheData = [
+        'data' => $data,
+        'timestamp' => time()
+    ];
+    
+    return file_put_contents($cacheFile, json_encode($cacheData)) !== false;
+}
+
+function clearCache($pattern = null) {
+    if ($pattern === null) {
+        // Clear all cache files
+        $files = glob(CACHE_DIR . '*.cache');
+        foreach ($files as $file) {
+            @unlink($file);
+        }
+        return true;
+    }
+    
+    // Clear cache files matching pattern
+    $files = glob(CACHE_DIR . md5($pattern) . '*.cache');
+    foreach ($files as $file) {
+        @unlink($file);
+    }
+    return true;
+}
+
+function generateCacheKey($query, $params = []) {
+    return $query . json_encode($params);
+}
+
 // Hashed admin credentials (prevents plaintext leakage)
 define('ADMIN_USERNAME', 'PromotionalAdmin');
 define('ADMIN_PASSWORD_HASH', '$2y$12$7AwD6yF6sJjeSAoexv3xveoehQUipErVu0/oxycCfHox1616eJXzO'); // default: Tagum2026
@@ -28,7 +90,7 @@ define('FESTIVALS_FILE', dirname(__DIR__) . '/assets/data/festivals.json');
 define('IMAGES_DIR', dirname(__DIR__) . '/images/destinations/');
 define('IMAGES_URL', '../../images/destinations/');
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-define('MAX_FILE_SIZE', 25 * 1024 * 1024);
+define('MAX_FILE_SIZE', 100 * 1024 * 1024);
 
 define('EXPERIENCES_IMAGES_DIR', dirname(__DIR__) . '/assets/images/experiences/');
 define('EXPERIENCES_IMAGES_URL', '../../assets/images/experiences/');
@@ -43,8 +105,8 @@ define('HOTEL_IMAGES_DIR', dirname(__DIR__) . '/assets/images/hotels/');
 define('HOTEL_IMAGES_URL', '../../assets/images/hotels/');
 
 // NEW: Restaurant images (reuse hotel logic)
-define('RESTAURANT_IMAGES_DIR', dirname(__DIR__) . '/images/restaurants/');
-define('RESTAURANT_IMAGES_URL', '../../images/restaurants/');
+define('RESTAURANT_IMAGES_DIR', dirname(__DIR__) . '/assets/images/restaurants/');
+define('RESTAURANT_IMAGES_URL', '../../assets/images/restaurants/');
 
 define('CAROUSEL_IMAGES_DIR', dirname(__DIR__) . '/images/carousel/');
 define('CAROUSEL_IMAGES_URL', 'images/carousel/');
@@ -93,6 +155,12 @@ function csrfField() {
 }
 
 function loadDestinations() {
+    $cacheKey = generateCacheKey('loadDestinations');
+    $cached = getCache($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
+    
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
@@ -102,11 +170,18 @@ function loadDestinations() {
         $destinations = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $destinations[] = $row;
         $db->close();
+        setCache($cacheKey, $destinations);
         return $destinations;
     } catch (Exception $e) { return []; }
 }
 
 function loadExperiences() {
+    $cacheKey = generateCacheKey('loadExperiences');
+    $cached = getCache($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
+    
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
@@ -116,6 +191,7 @@ function loadExperiences() {
         $experiences = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $experiences[] = $row;
         $db->close();
+        setCache($cacheKey, $experiences);
         return $experiences;
     } catch (Exception $e) { return []; }
 }
@@ -129,6 +205,12 @@ function loadCuisine() {
 }
 
 function loadCulturalSites() {
+    $cacheKey = generateCacheKey('loadCulturalSites');
+    $cached = getCache($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
+    
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
@@ -140,6 +222,7 @@ function loadCulturalSites() {
         $culturalSites = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $culturalSites[] = $row;
         $db->close();
+        setCache($cacheKey, $culturalSites);
         return $culturalSites;
     } catch (Exception $e) { return []; }
 }
@@ -176,6 +259,12 @@ function ensureFestivalRelatedEventColumn($db = null) {
 }
 
 function loadFestivals() {
+    $cacheKey = generateCacheKey('loadFestivals');
+    $cached = getCache($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
+    
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
@@ -186,6 +275,7 @@ function loadFestivals() {
         $festivals = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $festivals[] = $row;
         $db->close();
+        setCache($cacheKey, $festivals);
         return $festivals;
     } catch (Exception $e) { return []; }
 }
@@ -233,6 +323,7 @@ function saveFestivals(array $festivals) {
         }
 
         $db->close();
+        clearCache('loadFestivals');
         return true;
     } catch (Exception $e) {
         return false;
@@ -241,6 +332,12 @@ function saveFestivals(array $festivals) {
 
 // HOTEL FUNCTIONS
 function loadHotels() {
+    $cacheKey = generateCacheKey('loadHotels');
+    $cached = getCache($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
+    
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
@@ -250,21 +347,95 @@ function loadHotels() {
         $hotels = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $hotels[] = $row;
         $db->close();
+        setCache($cacheKey, $hotels);
         return $hotels;
     } catch (Exception $e) { return []; }
 }
 
 // RESTAURANT FUNCTIONS
+function formatTime24to12($time24) {
+    if (empty($time24)) return '';
+    
+    // Handle time ranges (e.g., "10:30-14:00")
+    if (strpos($time24, '-') !== false) {
+        $parts = explode('-', $time24);
+        $formatted = [];
+        foreach ($parts as $part) {
+            $formatted[] = formatSingleTime24to12(trim($part));
+        }
+        return implode(' to ', $formatted);
+    }
+    
+    return formatSingleTime24to12($time24);
+}
+
+function formatSingleTime24to12($time24) {
+    if (empty($time24)) return '';
+    
+    $time = strtotime($time24);
+    if ($time === false) return $time24;
+    
+    $formatted = date('g:ia', $time); // e.g., "8:00am", "10:30pm"
+    
+    // Remove :00 if it's on the hour
+    $formatted = str_replace(':00', '', $formatted);
+    
+    return $formatted; // e.g., "8am", "10:30pm"
+}
+
+function ensureRestaurantTimeColumns($db = null) {
+    $closeDb = false;
+    if ($db === null) {
+        $dbFile = dirname(__DIR__) . '/database.db';
+        if (!file_exists($dbFile)) {
+            return false;
+        }
+        $db = new SQLite3($dbFile);
+        $closeDb = true;
+    }
+
+    $columns = [];
+    $result = $db->query('PRAGMA table_info(restaurant_items)');
+    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $columns[] = $row['name'];
+    }
+
+    if (!in_array('opening_time', $columns, true)) {
+        $db->exec('ALTER TABLE restaurant_items ADD COLUMN opening_time TEXT');
+    }
+
+    if (!in_array('closing_time', $columns, true)) {
+        $db->exec('ALTER TABLE restaurant_items ADD COLUMN closing_time TEXT');
+    }
+
+    if (!in_array('time_slots', $columns, true)) {
+        $db->exec('ALTER TABLE restaurant_items ADD COLUMN time_slots TEXT');
+    }
+
+    if ($closeDb) {
+        $db->close();
+    }
+    return true;
+}
+
 function loadRestaurants() {
+    $cacheKey = generateCacheKey('loadRestaurants');
+    $cached = getCache($cacheKey);
+    if ($cached !== null) {
+        return $cached;
+    }
+    
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return [];
     try {
         $db = new SQLite3($dbFile);
+        ensureRestaurantTimeColumns($db);
         $query = "SELECT * FROM restaurant_items ORDER BY id";
         $result = $db->query($query);
         $restaurants = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) $restaurants[] = $row;
         $db->close();
+        setCache($cacheKey, $restaurants);
         return $restaurants;
     } catch (Exception $e) { return []; }
 }
@@ -336,6 +507,139 @@ function validateImageUpload($file) {
     return ['success' => empty($errors), 'error' => implode(', ', $errors)];
 }
 
+function processAndResizeImage($sourcePath, $targetPath, $targetWidth = 800, $targetHeight = 600) {
+    // Check if GD library is available
+    if (!extension_loaded('gd') || !function_exists('gd_info')) {
+        // Fall back to simple file copy if GD is not available
+        if (copy($sourcePath, $targetPath)) {
+            return ['success' => true, 'warning' => 'GD library not available, image copied without processing'];
+        }
+        return ['success' => false, 'error' => 'GD library not available and file copy failed'];
+    }
+
+    try {
+        $imageInfo = getimagesize($sourcePath);
+        if (!$imageInfo) {
+            return ['success' => false, 'error' => 'Invalid image file'];
+        }
+
+        $sourceWidth = $imageInfo[0];
+        $sourceHeight = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+
+        // Create image from source
+        switch ($mimeType) {
+            case 'image/jpeg':
+                if (!function_exists('imagecreatefromjpeg')) {
+                    return ['success' => false, 'error' => 'JPEG support not available in GD library'];
+                }
+                $source = imagecreatefromjpeg($sourcePath);
+                break;
+            case 'image/png':
+                if (!function_exists('imagecreatefrompng')) {
+                    return ['success' => false, 'error' => 'PNG support not available in GD library'];
+                }
+                $source = imagecreatefrompng($sourcePath);
+                break;
+            case 'image/gif':
+                if (!function_exists('imagecreatefromgif')) {
+                    return ['success' => false, 'error' => 'GIF support not available in GD library'];
+                }
+                $source = imagecreatefromgif($sourcePath);
+                break;
+            case 'image/webp':
+                if (!function_exists('imagecreatefromwebp')) {
+                    return ['success' => false, 'error' => 'WebP support not available in GD library'];
+                }
+                $source = imagecreatefromwebp($sourcePath);
+                break;
+            default:
+                return ['success' => false, 'error' => 'Unsupported image format'];
+        }
+
+        if (!$source) {
+            return ['success' => false, 'error' => 'Failed to create image from source'];
+        }
+
+        // Calculate aspect ratio and scaling
+        $sourceRatio = $sourceWidth / $sourceHeight;
+        $targetRatio = $targetWidth / $targetHeight;
+
+        // Determine scaling to fill target dimensions
+        if ($sourceRatio > $targetRatio) {
+            // Source is wider, scale by height
+            $scale = $targetHeight / $sourceHeight;
+            $newWidth = $sourceWidth * $scale;
+            $newHeight = $targetHeight;
+            $x = ($targetWidth - $newWidth) / 2;
+            $y = 0;
+        } else {
+            // Source is taller, scale by width
+            $scale = $targetWidth / $sourceWidth;
+            $newWidth = $targetWidth;
+            $newHeight = $sourceHeight * $scale;
+            $x = 0;
+            $y = ($targetHeight - $newHeight) / 2;
+        }
+
+        // Create new image with target dimensions
+        $target = imagecreatetruecolor($targetWidth, $targetHeight);
+
+        // Fill background with white color for JPEG, transparent for PNG/GIF
+        if ($mimeType === 'image/jpeg' || $mimeType === 'image/webp') {
+            $white = imagecolorallocate($target, 255, 255, 255);
+            imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $white);
+        } else {
+            imagealphablending($target, false);
+            imagesavealpha($target, true);
+            $transparent = imagecolorallocatealpha($target, 255, 255, 255, 127);
+            imagefilledrectangle($target, 0, 0, $targetWidth, $targetHeight, $transparent);
+        }
+
+        // Scale and position image to fill target dimensions
+        imagecopyresampled($target, $source, $x, $y, 0, 0, $newWidth, $newHeight, $sourceWidth, $sourceHeight);
+
+        // Save the processed image
+        $ext = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
+        switch ($ext) {
+            case 'jpg':
+            case 'jpeg':
+                if (!function_exists('imagejpeg')) {
+                    return ['success' => false, 'error' => 'JPEG save support not available in GD library'];
+                }
+                imagejpeg($target, $targetPath, 85);
+                break;
+            case 'png':
+                if (!function_exists('imagepng')) {
+                    return ['success' => false, 'error' => 'PNG save support not available in GD library'];
+                }
+                imagepng($target, $targetPath, 9);
+                break;
+            case 'gif':
+                if (!function_exists('imagegif')) {
+                    return ['success' => false, 'error' => 'GIF save support not available in GD library'];
+                }
+                imagegif($target, $targetPath);
+                break;
+            case 'webp':
+                if (!function_exists('imagewebp')) {
+                    return ['success' => false, 'error' => 'WebP save support not available in GD library'];
+                }
+                imagewebp($target, $targetPath, 85);
+                break;
+            default:
+                imagejpeg($target, $targetPath, 85);
+        }
+
+        imagedestroy($source);
+        imagedestroy($target);
+
+        return ['success' => true];
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => 'Image processing failed: ' . $e->getMessage()];
+    }
+}
+
 function saveUploadedImage($file) {
     $validation = validateImageUpload($file);
     if (!$validation['success']) return $validation;
@@ -364,10 +668,14 @@ function saveHotelImage($file) {
     $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $fileName = 'hotel_' . time() . '_' . uniqid() . '.' . $fileExt;
     $filePath = HOTEL_IMAGES_DIR . $fileName;
-    if (move_uploaded_file($file['tmp_name'], $filePath)) {
-        return ['success' => true, 'fileName' => $fileName, 'path' => HOTEL_IMAGES_URL . $fileName];
+    
+    // Process and resize image to uniform dimensions (800x600 for hotels)
+    $processResult = processAndResizeImage($file['tmp_name'], $filePath, 800, 600);
+    if (!$processResult['success']) {
+        return ['success' => false, 'error' => $processResult['error']];
     }
-    return ['success' => false, 'error' => 'Failed to save image'];
+    
+    return ['success' => true, 'fileName' => $fileName, 'path' => HOTEL_IMAGES_URL . $fileName];
 }
 
 function deleteHotelImage($pathOrFileName) {
@@ -385,10 +693,14 @@ function saveRestaurantImage($file) {
     $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $fileName = 'restaurant_' . time() . '_' . uniqid() . '.' . $fileExt;
     $filePath = RESTAURANT_IMAGES_DIR . $fileName;
-    if (move_uploaded_file($file['tmp_name'], $filePath)) {
-        return ['success' => true, 'fileName' => $fileName, 'path' => RESTAURANT_IMAGES_URL . $fileName];
+    
+    // Process and resize image to uniform dimensions (800x600 for restaurants)
+    $processResult = processAndResizeImage($file['tmp_name'], $filePath, 800, 600);
+    if (!$processResult['success']) {
+        return ['success' => false, 'error' => $processResult['error']];
     }
-    return ['success' => false, 'error' => 'Failed to save image'];
+    
+    return ['success' => true, 'fileName' => $fileName, 'path' => RESTAURANT_IMAGES_URL . $fileName];
 }
 
 function deleteRestaurantImage($pathOrFileName) {
@@ -420,12 +732,34 @@ function deleteCulturalSiteImage($pathOrFileName) {
     return !file_exists($filePath);
 }
 
+function saveFestivalImage($file) {
+    $validation = validateImageUpload($file);
+    if (!$validation['success']) return $validation;
+    if (!is_dir(FESTIVALS_IMAGES_DIR)) mkdir(FESTIVALS_IMAGES_DIR, 0755, true);
+    $fileExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $fileName = 'festival_' . time() . '_' . uniqid() . '.' . $fileExt;
+    $filePath = FESTIVALS_IMAGES_DIR . $fileName;
+    if (move_uploaded_file($file['tmp_name'], $filePath)) {
+        return ['success' => true, 'fileName' => $fileName, 'path' => FESTIVALS_IMAGES_URL . $fileName];
+    }
+    return ['success' => false, 'error' => 'Failed to save image'];
+}
+
+function deleteFestivalImage($pathOrFileName) {
+    $fileName = basename($pathOrFileName);
+    if (empty($fileName)) return false;
+    $filePath = FESTIVALS_IMAGES_DIR . $fileName;
+    if (file_exists($filePath)) unlink($filePath);
+    return !file_exists($filePath);
+}
+
 // DB CRUD functions for hotels and restaurants
 function deleteHotel($id) {
     $dbFile = '../database.db';
     if (!file_exists($dbFile)) return false;
     try {
         $db = new SQLite3($dbFile);
+        // Get image first
         $stmt = $db->prepare('SELECT image FROM hotel_items WHERE id = ?');
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $result = $stmt->execute();
@@ -437,6 +771,7 @@ function deleteHotel($id) {
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
         $db->close();
+        clearCache('loadHotels');
         return true;
     } catch (Exception $e) {
         return false;
@@ -452,6 +787,7 @@ function toggleHotelFeatured($id) {
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
         $db->close();
+        clearCache('loadHotels');
         return true;
     } catch (Exception $e) {
         return false;
@@ -463,6 +799,7 @@ function deleteRestaurant($id) {
     if (!file_exists($dbFile)) return false;
     try {
         $db = new SQLite3($dbFile);
+        ensureRestaurantTimeColumns($db);
         $stmt = $db->prepare('SELECT image FROM restaurant_items WHERE id = ?');
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $result = $stmt->execute();
@@ -474,6 +811,7 @@ function deleteRestaurant($id) {
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
         $db->close();
+        clearCache('loadRestaurants');
         return true;
     } catch (Exception $e) {
         return false;
@@ -489,6 +827,7 @@ function toggleRestaurantFeatured($id) {
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
         $db->close();
+        clearCache('loadRestaurants');
         return true;
     } catch (Exception $e) {
         return false;
@@ -518,6 +857,7 @@ function saveDestination($data, $id = null) {
             $result = $stmt->execute();
             $newId = $db->lastInsertRowID();
             $db->close();
+            clearCache('loadDestinations');
             return $newId;
         } else {
             // UPDATE existing
@@ -538,6 +878,7 @@ function saveDestination($data, $id = null) {
             $result = $stmt->execute();
             $affected = $db->changes();
             $db->close();
+            clearCache('loadDestinations');
             return $affected > 0;
         }
     } catch (Exception $e) {
@@ -554,6 +895,7 @@ function toggleDestinationFeatured($id) {
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
         $db->close();
+        clearCache('loadDestinations');
         return true;
     } catch (Exception $e) {
         return false;
@@ -578,6 +920,7 @@ function deleteDestination($id) {
         $stmt->bindValue(1, $id, SQLITE3_INTEGER);
         $stmt->execute();
         $db->close();
+        clearCache('loadDestinations');
         return true;
     } catch (Exception $e) {
         return false;

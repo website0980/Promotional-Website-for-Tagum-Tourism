@@ -83,6 +83,20 @@ case 'toggle-featured':
             }
             break;
 
+        case 'delete-cultural-heritage':
+            if ($id !== null) {
+                $culturalHeritage = json_decode(file_get_contents('../Cultural Heritage Module/cultural-heritage.json'), true) ?? [];
+                $culturalHeritage = array_filter($culturalHeritage, function($item) use ($id) {
+                    return ($item['id'] ?? '') !== $id;
+                });
+                $culturalHeritage = array_values($culturalHeritage);
+                file_put_contents('../Cultural Heritage Module/cultural-heritage.json', json_encode($culturalHeritage, JSON_PRETTY_PRINT));
+                $message = 'Cultural heritage item deleted.';
+                $messageType = 'success';
+                $culturalHeritage = json_decode(file_get_contents('../Cultural Heritage Module/cultural-heritage.json'), true) ?? [];
+            }
+            break;
+
     }
 }
 
@@ -313,6 +327,11 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                         </td>
                                         <td class="action-buttons">
                                             <a href="add-cultural-heritage.php?id=<?php echo $item['id']; ?>" class="btn btn-small btn-edit">Edit</a>
+                                            <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this cultural heritage item?');">
+                                                <input type="hidden" name="action" value="delete-cultural-heritage">
+                                                <input type="hidden" name="id" value="<?php echo $item['id']; ?>">
+                                                <button type="submit" class="btn btn-small btn-delete">Delete</button>
+                                            </form>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -578,6 +597,7 @@ if (isset($_GET['message']) && $currentTab === 'carousel') {
                                         </td>
                                         <td class="action-buttons">
                                             <a href="add-restaurant.php?id=<?php echo $restaurant['id']; ?>" class="btn btn-small btn-edit">Edit</a>
+                                            <a href="restaurant-gallery.php?restaurant_id=<?php echo (int)$restaurant['id']; ?>" class="btn btn-small btn-primary" style="padding:0.35rem 0.6rem;">Manage Photos</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

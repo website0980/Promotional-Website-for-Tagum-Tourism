@@ -198,11 +198,11 @@ $gallery = loadGalleryForHotel($hotelId);
     <link rel="stylesheet" href="../css/admin.css">
     <style>
         .hotel-gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
-        .gallery-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
-        .gallery-card img { width: 100%; height: auto; object-fit: contain; display: block; }
-        .gallery-card .gallery-meta { padding: .75rem; }
+        .gallery-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; height: 100%; }
+        .gallery-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .gallery-card .gallery-meta { padding: .75rem; flex-shrink: 0; }
         .gallery-card .gallery-meta .caption { font-size: .9rem; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .gallery-actions { padding: .75rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; }
+        .gallery-actions { padding: .75rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; flex-shrink: 0; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
         input[type=file] { width: 100%; }
         .caption-input { width: 100%; }

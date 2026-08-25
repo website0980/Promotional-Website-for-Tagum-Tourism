@@ -251,7 +251,7 @@
     <!-- Cultural Heritage Section -->
     <section class="cultural-heritage-preview" id="cultural-heritage">
         <h2>Cultural Heritage</h2>
-        <p class="section-subtitle">Discover the rich cultural heritage and traditions of Tagum City</p>
+        <p class="section-subtitle">Explore the historic sites and heritage that tell the stories of our past</p>
         <div class="cultural-heritage-grid">
             <?php
             $heritageData = [];
@@ -282,7 +282,10 @@
             <?php endforeach; ?>
             
             <?php if (empty($displayHeritage)): ?>
-                <p style="text-align:center;grid-column:1/-1;">No cultural heritage content yet.</p>
+                <div style="text-align:center;grid-column:1/-1;padding: 2rem;background: #f9f9f9;border-radius: 8px;">
+                    <p style="font-size: 1.1rem;color: #666;margin-bottom: 0.5rem;">🏛️ There is no available data at the moment.</p>
+                    <p style="font-size: 0.95rem;color: #888;">The information is still on going research.</p>
+                </div>
             <?php endif; ?>
         </div>
         <?php if (!empty($displayHeritage)): ?>

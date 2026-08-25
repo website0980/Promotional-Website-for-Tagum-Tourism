@@ -23,6 +23,9 @@ $restaurant = [
     'information' => '',
     'latitude' => '',
     'longitude' => '',
+    'opening_time' => '',
+    'closing_time' => '',
+    'time_slots' => '',
     'image' => ''
 ];
 
@@ -53,6 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'information' => '',
         'latitude' => is_numeric($_POST['latitude'] ?? null) ? (float)$_POST['latitude'] : null,
         'longitude' => is_numeric($_POST['longitude'] ?? null) ? (float)$_POST['longitude'] : null,
+        'opening_time' => trim($_POST['opening_time'] ?? ''),
+        'closing_time' => trim($_POST['closing_time'] ?? ''),
+        'time_slots' => trim($_POST['time_slots'] ?? ''),
         'rating' => 4.0,
         'image' => $_POST['image'] ?? ''
     ];
@@ -97,15 +103,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $db = new SQLite3($dbFile);
                     if ($isEdit) {
-                        $stmt = $db->prepare('UPDATE restaurant_items SET name = ?, description = ?, location = ?, contact = ?, latitude = ?, longitude = ?, image = ? WHERE id = ?');
+                        $stmt = $db->prepare('UPDATE restaurant_items SET name = ?, description = ?, location = ?, contact = ?, latitude = ?, longitude = ?, opening_time = ?, closing_time = ?, time_slots = ?, image = ? WHERE id = ?');
                         $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
                         $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
                         $stmt->bindValue(3, $restaurant['location'], SQLITE3_TEXT);
                         $stmt->bindValue(4, $restaurant['contact'], SQLITE3_TEXT);
                         $stmt->bindValue(5, $restaurant['latitude'], SQLITE3_FLOAT);
                         $stmt->bindValue(6, $restaurant['longitude'], SQLITE3_FLOAT);
-                        $stmt->bindValue(7, $restaurant['image'], SQLITE3_TEXT);
-                        $stmt->bindValue(8, $restaurantIndex, SQLITE3_INTEGER);
+                        $stmt->bindValue(7, $restaurant['opening_time'], SQLITE3_TEXT);
+                        $stmt->bindValue(8, $restaurant['closing_time'], SQLITE3_TEXT);
+                        $stmt->bindValue(9, $restaurant['time_slots'], SQLITE3_TEXT);
+                        $stmt->bindValue(10, $restaurant['image'], SQLITE3_TEXT);
+                        $stmt->bindValue(11, $restaurantIndex, SQLITE3_INTEGER);
                         $stmt->execute();
 
                         // If nothing was updated, treat it as failure (useful for debugging).
@@ -114,14 +123,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $errors[] = 'Update failed. ID: ' . $restaurantIndex . ' (changes=' . $changes . ')';
                         }
                     } else {
-                        $stmt = $db->prepare('INSERT INTO restaurant_items (name, description, location, contact, latitude, longitude, image) VALUES (?, ?, ?, ?, ?, ?, ?)');
+                        $stmt = $db->prepare('INSERT INTO restaurant_items (name, description, location, contact, latitude, longitude, opening_time, closing_time, time_slots, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
                         $stmt->bindValue(1, $restaurant['name'], SQLITE3_TEXT);
                         $stmt->bindValue(2, $restaurant['description'], SQLITE3_TEXT);
                         $stmt->bindValue(3, $restaurant['location'], SQLITE3_TEXT);
                         $stmt->bindValue(4, $restaurant['contact'], SQLITE3_TEXT);
                         $stmt->bindValue(5, $restaurant['latitude'], SQLITE3_FLOAT);
                         $stmt->bindValue(6, $restaurant['longitude'], SQLITE3_FLOAT);
-                        $stmt->bindValue(7, $restaurant['image'], SQLITE3_TEXT);
+                        $stmt->bindValue(7, $restaurant['opening_time'], SQLITE3_TEXT);
+                        $stmt->bindValue(8, $restaurant['closing_time'], SQLITE3_TEXT);
+                        $stmt->bindValue(9, $restaurant['time_slots'], SQLITE3_TEXT);
+                        $stmt->bindValue(10, $restaurant['image'], SQLITE3_TEXT);
                         $stmt->execute();
                     }
 
@@ -132,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (empty($errors)) {
+                clearCache('loadRestaurants');
                 $message = $isEdit ? 'updated' : 'added';
                 header('Location: dashboard.php?tab=restaurants&message=' . $message);
                 exit();
@@ -226,6 +239,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="contact">Contact</label>
                             <input type="text" id="contact" name="contact" value="<?php echo htmlspecialchars($restaurant['contact'] ?? ''); ?>" class="form-control" placeholder="+63 912 345 6789">
                         </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="opening_time">Opening Time</label>
+                            <input type="time" id="opening_time" name="opening_time" value="<?php echo htmlspecialchars($restaurant['opening_time'] ?? ''); ?>" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="closing_time">Closing Time</label>
+                            <input type="time" id="closing_time" name="closing_time" value="<?php echo htmlspecialchars($restaurant['closing_time'] ?? ''); ?>" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="time_slots">Additional Time Slots (for buffets, etc.)</label>
+                        <small>Format: 10:30-14:00, 17:00-20:00 (use 24-hour format, separate with commas)</small>
+                        <textarea id="time_slots" name="time_slots" class="form-control form-textarea" rows="2" placeholder="e.g., 10:30-14:00, 17:00-20:00"><?php echo htmlspecialchars($restaurant['time_slots'] ?? ''); ?></textarea>
                     </div>
                     <div class="form-group">
                         <label for="description">Description</label>
