@@ -194,12 +194,12 @@ if ($hotel) {
             overflow: hidden;
             border: 1px solid #eef2f7;
             cursor: pointer;
-            background: #f8fafc;
+            height: 200px;
         }
 
         .hotel-photo-thumb img {
             width: 100%;
-            height: 140px;
+            height: 100%;
             object-fit: cover;
             display: block;
         }
@@ -329,7 +329,7 @@ if ($hotel) {
                                     $detailImagePath = '../' . ltrim($detailImagePath, '/');
                                 }
                             ?>
-                            <img src="<?php echo htmlspecialchars($detailImagePath); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>">
+                            <img src="<?php echo htmlspecialchars($detailImagePath); ?>" alt="<?php echo htmlspecialchars($hotel['name']); ?>" loading="lazy">
                         </div>
                     <?php endif; ?>
 
@@ -456,7 +456,7 @@ if ($hotel) {
                                         data-src="<?php echo htmlspecialchars($imgPath); ?>"
                                         data-index="<?php echo (int)$idx; ?>"
                                         aria-label="Open photo">
-                                        <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Hotel photo">
+                                        <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Hotel photo" loading="lazy">
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -481,7 +481,8 @@ if ($hotel) {
                     </div>
 
                     <div class="experience-actions">
-
+                        <a href="../Feedback Module/feedback-form.php?type=hotel&id=<?php echo $hotel['id']; ?>&name=<?php echo urlencode($hotel['name']); ?>" class="btn btn-primary">Write a Review</a>
+                        <a href="../Feedback Module/public-reviews.php?type=hotel&id=<?php echo $hotel['id']; ?>" class="btn btn-secondary">View Reviews</a>
                         <a href="hotels.php" class="smooth-scroll btn btn-secondary">← Back to Hotels</a>
                     </div>
                 </article>
