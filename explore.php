@@ -107,23 +107,6 @@ $requestedSection = isset($_GET['section']) && in_array($_GET['section'], ['even
 
                     $festivals = sortFestivalsByRelatedEvents($festivals, $events);
 
-                    // Filter to show only upcoming festivals (not past dates)
-                    $currentDate = date('Y-m-d');
-                    $festivals = array_filter($festivals, function($festival) use ($currentDate) {
-                        if (empty($festival['date'])) {
-                            return false; // Exclude festivals without dates
-                        }
-                        $dateString = trim((string)$festival['date']);
-                        // Try to parse the date - handle various formats
-                        $festivalDate = strtotime($dateString);
-                        if ($festivalDate === false) {
-                            return false; // Exclude festivals with invalid dates
-                        }
-                        // Compare dates
-                        return $festivalDate >= strtotime($currentDate);
-                    });
-                    $festivals = array_values($festivals); // Re-index array
-
                     // ---- Group/sort festivals by “kind” (keyword-based, since DB currently has no explicit type/category column) ----
                     // Purpose: user can immediately see WHAT kind of festival it is (music, food, community, etc.).
                     $festivalTypeMap = [
@@ -281,8 +264,11 @@ $requestedSection = isset($_GET['section']) && in_array($_GET['section'], ['even
                                             <?php foreach ($monthData['events'] as $festival): ?>
                                                 <?php
                                                 $imagePath = $festival['image'] ?? '';
-                                                if (strpos($imagePath, '../../assets/') === 0) {
-                                                    $imagePath = str_replace('../../assets/', '../assets/', $imagePath);
+                                                // Fix image path for Explore Module subdirectory
+                                                if (strpos($imagePath, 'images/') === 0) {
+                                                    $imagePath = '../' . $imagePath;
+                                                } elseif (strpos($imagePath, 'assets/') === 0) {
+                                                    $imagePath = '../' . $imagePath;
                                                 }
                                                 $dateShow = '';
                                                 if (!empty($festival['date'])) {

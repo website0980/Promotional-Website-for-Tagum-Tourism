@@ -91,8 +91,16 @@
                 <h1><?php echo htmlspecialchars($festival['name']); ?></h1>
             </div>
 
-            <?php if (!empty($festival['image'])): ?>
-                <img src="<?php echo htmlspecialchars($festival['image']); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>" class="event-image" loading="lazy" onerror="this.style.display='none'">
+            <?php
+            $imagePath = $festival['image'] ?? '';
+            // Fix image path for Explore Module subdirectory
+            if (strpos($imagePath, 'images/') === 0) {
+                $imagePath = '../' . $imagePath;
+            } elseif (strpos($imagePath, 'assets/') === 0) {
+                $imagePath = '../' . $imagePath;
+            }
+            if (!empty($imagePath)): ?>
+                <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($festival['name']); ?>" class="event-image" loading="lazy" onerror="this.style.display='none'">
             <?php endif; ?>
 
             <div class="event-content">

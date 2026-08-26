@@ -145,6 +145,12 @@ $categories = array_values($categories);
                     $imagePath = $featuredItem['type'] === 'festival' 
                         ? ($featuredItem['image'] ?? '')
                         : fixEventImagePath($featuredItem['image'] ?? '');
+                    // Fix image path for Explore Module subdirectory
+                    if (strpos($imagePath, 'images/') === 0) {
+                        $imagePath = '../' . $imagePath;
+                    } elseif (strpos($imagePath, 'assets/') === 0) {
+                        $imagePath = '../' . $imagePath;
+                    }
                     if (!empty($imagePath)): ?>
                     <div class="featured-event-background">
                         <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($featuredItem['name']); ?>" loading="lazy" onerror="this.parentElement.style.display='none'">
@@ -229,6 +235,12 @@ $categories = array_values($categories);
                         $imagePath = $item['type'] === 'festival' 
                             ? ($item['image'] ?? '')
                             : fixEventImagePath($item['image'] ?? '');
+                        // Fix image path for Explore Module subdirectory
+                        if (strpos($imagePath, 'images/') === 0) {
+                            $imagePath = '../' . $imagePath;
+                        } elseif (strpos($imagePath, 'assets/') === 0) {
+                            $imagePath = '../' . $imagePath;
+                        }
                         $itemDate = !empty($item['event_date']) ? strtotime($item['event_date']) : null;
                         $day = $itemDate ? date('j', $itemDate) : '';
                         $month = $itemDate ? date('M', $itemDate) : '';
@@ -237,11 +249,21 @@ $categories = array_values($categories);
                             : (!empty($item['category']) ? htmlspecialchars($item['category']) : 'General');
                         ?>
                         <div class="event-card" data-date="<?php echo htmlspecialchars($item['event_date'] ?? ''); ?>" data-category="<?php echo htmlspecialchars(strtolower($item['type'])); ?>" data-type="<?php echo htmlspecialchars($item['type']); ?>">
-                            <div class="event-date-badge">
-                                <span class="date-day"><?php echo $day; ?></span>
-                                <span class="date-month"><?php echo $month; ?></span>
+                            <div class="event-card-image">
+                                <?php if (!empty($imagePath)): ?>
+                                    <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" loading="lazy">
+                                <?php else: ?>
+                                    <div class="event-card-placeholder">
+                                        <span><?php echo $item['type'] === 'festival' ? '🎉' : '📅'; ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="event-card-content">
+                            <div class="event-card-content-wrapper">
+                                <div class="event-date-badge">
+                                    <span class="date-day"><?php echo $day; ?></span>
+                                    <span class="date-month"><?php echo $month; ?></span>
+                                </div>
+                                <div class="event-card-content">
                                 <span class="event-category-tag"><?php echo $category; ?></span>
                                 <h3 class="event-title"><?php echo htmlspecialchars($item['name']); ?></h3>
                                 <div class="event-meta">
@@ -271,6 +293,7 @@ $categories = array_values($categories);
                                 <p class="event-description"><?php echo htmlspecialchars(substr($item['description'] ?? '', 0, 120)); ?>...</p>
                                 <a href="<?php echo $item['type'] === 'festival' ? 'festival-detail.php' : 'event1-detail.php'; ?>?id=<?php echo (int) $item['id']; ?>" class="event-view-btn">View Details</a>
                             </div>
+                            </div>
                         </div>
                         <?php endforeach; ?>
                         
@@ -296,14 +319,29 @@ $categories = array_values($categories);
     <!-- Events data for JavaScript -->
     <script>
         const eventsData = <?php echo json_encode(array_map(function($item) {
+            $imagePath = $item['type'] === 'festival' ? ($item['image'] ?? '') : fixEventImagePath($item['image'] ?? '');
+            // Fix image path for Explore Module subdirectory
+            if (strpos($imagePath, 'images/') === 0) {
+                $imagePath = '../' . $imagePath;
+            } elseif (strpos($imagePath, 'assets/') === 0) {
+                $imagePath = '../' . $imagePath;
+            }
+            // Format date to YYYY-MM-DD for JavaScript calendar
+            $dateValue = $item['event_date'] ?? '';
+            if (!empty($dateValue)) {
+                $timestamp = strtotime($dateValue);
+                if ($timestamp !== false) {
+                    $dateValue = date('Y-m-d', $timestamp);
+                }
+            }
             return [
                 'id' => $item['id'],
                 'name' => $item['name'],
-                'date' => $item['event_date'] ?? '',
+                'date' => $dateValue,
                 'category' => $item['type'] === 'festival' ? 'Festival' : ($item['category'] ?? 'General'),
                 'type' => $item['type'] ?? 'event',
                 'location' => $item['location'] ?? '',
-                'image' => $item['type'] === 'festival' ? ($item['image'] ?? '') : fixEventImagePath($item['image'] ?? ''),
+                'image' => $imagePath,
                 'description' => $item['description'] ?? ''
             ];
         }, $allItems)); ?>;
